@@ -49,8 +49,14 @@ The project uses data from [VitalDB](https://vitaldb.net/), a comprehensive data
 ```python
 # Import the package
 import sys
-sys.path.append('src')
-from src import *
+import os
+sys.path.append(os.path.abspath('src'))
+
+# Import functions from individual modules
+from utils import setup_plotting, load_vitaldb_data, preprocess_data, prepare_train_test_data
+from train import get_default_model_configs, hyperparameter_tuning, save_best_model
+from evaluate import evaluate_models
+from shap_explainer import explain_model_with_shap
 
 # Setup
 setup_plotting()
@@ -70,6 +76,13 @@ best_model_name, best_model = save_best_model(tuned_models, data_dict['X_test_di
 
 # Generate SHAP explanations
 explain_model_with_shap(best_model, data_dict['X_test_dict']['imputed'], feature_names)
+```
+
+### Testing Imports
+
+Test if all imports work correctly:
+```bash
+python test_imports.py
 ```
 
 ## 📁 Project Structure
