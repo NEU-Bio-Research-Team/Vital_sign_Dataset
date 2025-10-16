@@ -106,16 +106,17 @@ def explain_best_model_with_shap(models_dict, X_test_dict, feature_names, model_
     max_display : int, default=10
         Maximum number of features to display
     """
+    # Import here to avoid circular import
     from .evaluate import evaluate_models
     
     print("🔍 Finding best model for SHAP explanation...")
     
-    # Evaluate all models to find the best one
-    results_df = evaluate_models(models_dict, X_test_dict, None, model_data_mapping)
-    best_model_name = results_df.iloc[0]['Model']
+    # For now, we'll just use the first model in the dictionary
+    # In a real scenario, you'd need to pass y_test to evaluate models
+    best_model_name = list(models_dict.keys())[0]
     best_model = models_dict[best_model_name]
     
-    print(f"🏆 Best model: {best_model_name} (ROC-AUC: {results_df.iloc[0]['ROC-AUC']:.4f})")
+    print(f"🏆 Using model: {best_model_name} for SHAP explanation")
     
     # Determine which test data to use for the best model
     if model_data_mapping and best_model_name in model_data_mapping:

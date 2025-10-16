@@ -243,6 +243,8 @@ def save_best_model(models_dict, X_test_dict, y_test, model_data_mapping=None, b
     best_models_dir : str, default='best_models'
         Directory to save the best model
     """
+    
+    # Import here to avoid circular import
     from .evaluate import evaluate_models
     
     # Evaluate all models to find the best one
