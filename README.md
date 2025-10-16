@@ -78,6 +78,93 @@ best_model_name, best_model = save_best_model(tuned_models, data_dict['X_test_di
 explain_model_with_shap(best_model, data_dict['X_test_dict']['imputed'], feature_names)
 ```
 
+### Training Specific Models
+
+Instead of training all models, you can train only specific models:
+
+#### Option 1: Select from Default Configurations
+```python
+# Get all default configs
+all_configs = get_default_model_configs()
+
+# Select only specific models
+specific_models = {
+    'LogisticRegression': all_configs['LogisticRegression'],
+    'XGBoost': all_configs['XGBoost']
+    # Add more models as needed
+}
+
+# Train only selected models
+tuned_models = hyperparameter_tuning(specific_models, data_dict['X_train_dict'], data_dict['y_train'])
+```
+
+#### Option 2: Custom Model Configurations
+```python
+from sklearn.linear_model import LogisticRegression
+from xgboost import XGBClassifier
+
+# Create custom configurations with simplified parameters for faster training
+custom_models = {
+    'LogisticRegression_Fast': {
+        'model': LogisticRegression(random_state=0),
+        'params': {
+            'C': [0.1, 1, 10],  # Reduced parameter grid
+            'solver': ['lbfgs'],
+            'class_weight': [None, 'balanced']
+        },
+        'data_type': 'scaled'
+    },
+    'XGBoost_Fast': {
+        'model': XGBClassifier(random_state=0, eval_metric='logloss'),
+        'params': {
+            'n_estimators': [50, 100],
+            'max_depth': [3, 6],
+            'learning_rate': [0.1, 0.2]
+        },
+        'data_type': 'imputed'
+    }
+}
+
+tuned_models = hyperparameter_tuning(custom_models, data_dict['X_train_dict'], data_dict['y_train'])
+```
+
+#### Option 3: Single Model Training
+```python
+# Train only XGBoost
+single_model = {
+    'XGBoost_Only': {
+        'model': XGBClassifier(random_state=0, eval_metric='logloss'),
+        'params': {
+            'n_estimators': [100, 200],
+            'max_depth': [4, 6, 8],
+            'learning_rate': [0.05, 0.1, 0.2]
+        },
+        'data_type': 'imputed'
+    }
+}
+
+tuned_models = hyperparameter_tuning(single_model, data_dict['X_train_dict'], data_dict['y_train'])
+```
+
+#### Option 4: Conditional Training Scenarios
+```python
+# Define different training scenarios
+scenarios = {
+    'fast': ['LogisticRegression'],  # Quick training
+    'balanced': ['LogisticRegression', 'XGBoost'],  # Balanced speed/performance
+    'comprehensive': ['LogisticRegression', 'RandomForest', 'XGBoost', 'SVM']  # Full training
+}
+
+# Choose scenario
+selected_scenario = 'balanced'  # Change as needed
+
+# Build configuration
+all_configs = get_default_model_configs()
+selected_models = {model: all_configs[model] for model in scenarios[selected_scenario] if model in all_configs}
+
+tuned_models = hyperparameter_tuning(selected_models, data_dict['X_train_dict'], data_dict['y_train'])
+```
+
 ### Testing Imports
 
 Test if all imports work correctly:
@@ -98,10 +185,9 @@ Vital_sign_Dataset/
 │   └── shap_explainer.py         # SHAP-based model interpretability
 ├── notebooks/                     # Jupyter notebooks
 │   ├── example_train.ipynb       # Training example
-│   ├── example_eval.ipynb        # Evaluation example
-│   ├── aki_prediction.ipynb      # Original prediction notebook
-│   ├── aki_pred_hyper.ipynb      # Hyperparameter tuning notebook
-│   └── dataset_analysis.ipynb    # Dataset analysis notebook
+│   └── example_eval.ipynb        # Evaluation example
+├── examples/                      # Python script examples
+│   └── train_specific_models.py  # Examples for training specific models
 ├── best_models/                   # Saved trained models
 ├── results/                       # Prediction results and outputs
 ├── requirements.txt               # Python dependencies
