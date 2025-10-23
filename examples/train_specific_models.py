@@ -8,12 +8,15 @@ instead of using the complete default configuration.
 
 import sys
 import os
+import json
+import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from utils import setup_plotting, load_vitaldb_data, preprocess_data, prepare_train_test_data
-from train import get_default_model_configs, hyperparameter_tuning
+from train import get_default_model_configs, hyperparameter_tuning, load_model
 from sklearn.linear_model import LogisticRegression
 from xgboost import XGBClassifier
+from evaluate import evaluate_single_model, save_evaluation_results
 from sklearn.ensemble import RandomForestClassifier
 
 def example_1_select_from_default():
@@ -146,7 +149,7 @@ def example_4_conditional_training():
     }
     
     # Choose scenario (you can modify this)
-    selected_scenario = 'balanced'  # Change this to 'fast', 'balanced', or 'comprehensive'
+    selected_scenario = 'comprehensive'  # Change this to 'fast', 'balanced', or 'comprehensive'
     
     print(f"Selected scenario: {selected_scenario}")
     
@@ -162,10 +165,66 @@ def example_4_conditional_training():
     tuned_models = hyperparameter_tuning(
         selected_models, 
         data_dict['X_train_dict'], 
-        data_dict['y_train']
+        data_dict['y_train'],
+        save_summary=True,
+        summary_dir='best_models'
     )
     
     return tuned_models, data_dict, feature_names
+
+def main_evaluate(model_dir="best_models", output_dir="evaluation_outputs"):
+    print("🚀 Starting Evaluation Pipeline...")
+    
+    # === Load and preprocess data ===
+    df = load_vitaldb_data()
+    X, y, feature_names = preprocess_data(df)
+    data_dict = prepare_train_test_data(X, y)
+    
+    X_test_dict = data_dict['X_test_dict']
+    y_test = data_dict['y_test']
+
+    # === Evaluate each saved model ===
+    all_metrics = []
+    os.makedirs(output_dir, exist_ok=True)
+
+    for file in os.listdir(model_dir):
+        if not file.endswith(".joblib"):
+            continue
+
+        model_name = file.replace(".joblib", "")
+        model = load_model(model_name, best_models_dir=model_dir)  # ✅ dùng hàm load_model()
+        if model is None:
+            continue  # bỏ qua nếu model không load được
+
+        # chọn đúng data type cho model
+        X_test_data = (
+            X_test_dict["scaled"]
+            if "SVM" in model_name or "Logistic" in model_name
+            else X_test_dict["imputed"]
+        )
+
+        # === Evaluate model ===
+        y_pred, y_pred_proba, metrics = evaluate_single_model(model, model_name, X_test_data, y_test)
+        all_metrics.append(metrics)
+
+        # === Save predictions ===
+        pred_df = pd.DataFrame({
+            "y_true": y_test,
+            "y_pred": y_pred,
+            "y_pred_proba": y_pred_proba
+        })
+        pred_df.to_csv(f"{output_dir}/pred_{model_name}.csv", index=False)
+        print(f"💾 Saved predictions for {model_name}")
+
+    # === Tổng hợp metrics ===
+    results_df = pd.DataFrame(all_metrics)
+    results_df = results_df.sort_values(by="ROC-AUC", ascending=False)
+    results_df.to_csv(f"{output_dir}/evaluation_summary.csv", index=False)
+
+    print("🏁 Evaluation done!")
+    return results_df  # ✅ trả về kết quả để dễ kiểm tra
+
+
 
 def main():
     """Main function to demonstrate all examples."""
@@ -203,5 +262,11 @@ def main():
     
     return tuned_models, data_dict, feature_names, model_data_mapping
 
+
 if __name__ == "__main__":
-    tuned_models, data_dict, feature_names, model_data_mapping = main()
+    import joblib
+
+    
+    # Evaluate all models in saved_models/
+    results_df = main_evaluate()
+    print(results_df.head())

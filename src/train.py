@@ -65,10 +65,10 @@ def get_default_model_configs():
         'SVM': {
             'model': SVC(random_state=0, probability=True),
             'params': {
-                'C': [0.1, 1, 10, 100, 1000],
-                'gamma': ['scale', 'auto', 0.001, 0.01, 0.1, 1],
+                'C': [0.1, 1, 10],
+                'gamma': ['scale', 'auto', 0.01, 0.1],
                 'kernel': ['rbf', 'linear', 'poly'],
-                'class_weight': [None, 'balanced']
+                'class_weight': ['balanced']
             },
             'data_type': 'scaled'
         }
