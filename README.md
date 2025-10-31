@@ -1,459 +1,349 @@
-# AKI Prediction Project
+# Vital Sign Dataset Projects
 
-A comprehensive machine learning pipeline for predicting postoperative Acute Kidney Injury (AKI) using vital signs and clinical data from VitalDB.
-
-## 🏥 Project Overview
-
-This project implements state-of-the-art machine learning models to predict the risk of developing Acute Kidney Injury (AKI) after surgery. AKI is a serious complication that can lead to increased mortality and healthcare costs. Early prediction can help clinicians take preventive measures.
-
-### Key Features
-
-- **Multiple ML Models**: Logistic Regression, Random Forest, XGBoost, SVM
-- **Hyperparameter Tuning**: Automated optimization using GridSearchCV
-- **Comprehensive Evaluation**: ROC-AUC, AUPRC, Precision, Recall, F1-Score, PPV
-- **Model Interpretability**: SHAP explanations for understanding feature importance
-- **Modular Design**: Clean, reusable code structure
-- **Easy-to-use Examples**: Simple training and evaluation notebooks
-
-## 📊 Dataset
-
-The project uses data from [VitalDB](https://vitaldb.net/), a comprehensive database of vital signs and clinical information from surgical patients.
-
-### Features
-- **75+ clinical features** including demographics, vital signs, and laboratory values
-- **AKI Definition**: KDIGO Stage I (postop creatinine > 1.5 × preop creatinine)
-- **Class Distribution**: ~5.3% positive cases (imbalanced dataset)
-
-## 🚀 Quick Start
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/NEU-Bio-Research-Team/Vital_sign_Dataset.git
-   cd Vital_sign_Dataset
-   ```
-
-2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Run example training**
-   ```bash
-   jupyter notebook notebooks/example_train.ipynb
-   ```
-
-### Basic Usage
-
-```python
-# Import the package
-import sys
-import os
-sys.path.append(os.path.abspath('src'))
-
-# Import functions from individual modules
-from utils import setup_plotting, load_vitaldb_data, preprocess_data, prepare_train_test_data
-from train import get_default_model_configs, hyperparameter_tuning, save_best_model
-from evaluate import evaluate_models
-from shap_explainer import explain_model_with_shap
-
-# Setup
-setup_plotting()
-
-# Load and preprocess data
-df = load_vitaldb_data()
-X, y, feature_names = preprocess_data(df)
-data_dict = prepare_train_test_data(X, y)
-
-# Train models
-models_config = get_default_model_configs()
-tuned_models = hyperparameter_tuning(models_config, data_dict['X_train_dict'], data_dict['y_train'])
-
-# Evaluate and save best model
-results_df = evaluate_models(tuned_models, data_dict['X_test_dict'], data_dict['y_test'])
-best_model_name, best_model = save_best_model(tuned_models, data_dict['X_test_dict'], data_dict['y_test'])
-
-# Generate SHAP explanations
-explain_model_with_shap(best_model, data_dict['X_test_dict']['imputed'], feature_names)
-```
-
-### Training Specific Models
-
-Instead of training all models, you can train only specific models:
-
-#### Option 1: Select from Default Configurations
-```python
-# Get all default configs
-all_configs = get_default_model_configs()
-
-# Select only specific models
-specific_models = {
-    'LogisticRegression': all_configs['LogisticRegression'],
-    'XGBoost': all_configs['XGBoost']
-    # Add more models as needed
-}
-
-# Train only selected models
-tuned_models = hyperparameter_tuning(specific_models, data_dict['X_train_dict'], data_dict['y_train'])
-```
-
-#### Option 2: Custom Model Configurations
-```python
-from sklearn.linear_model import LogisticRegression
-from xgboost import XGBClassifier
-
-# Create custom configurations with simplified parameters for faster training
-custom_models = {
-    'LogisticRegression_Fast': {
-        'model': LogisticRegression(random_state=0),
-        'params': {
-            'C': [0.1, 1, 10],  # Reduced parameter grid
-            'solver': ['lbfgs'],
-            'class_weight': [None, 'balanced']
-        },
-        'data_type': 'scaled'
-    },
-    'XGBoost_Fast': {
-        'model': XGBClassifier(random_state=0, eval_metric='logloss'),
-        'params': {
-            'n_estimators': [50, 100],
-            'max_depth': [3, 6],
-            'learning_rate': [0.1, 0.2]
-        },
-        'data_type': 'imputed'
-    }
-}
-
-tuned_models = hyperparameter_tuning(custom_models, data_dict['X_train_dict'], data_dict['y_train'])
-```
-
-#### Option 3: Single Model Training
-```python
-# Train only XGBoost
-single_model = {
-    'XGBoost_Only': {
-        'model': XGBClassifier(random_state=0, eval_metric='logloss'),
-        'params': {
-            'n_estimators': [100, 200],
-            'max_depth': [4, 6, 8],
-            'learning_rate': [0.05, 0.1, 0.2]
-        },
-        'data_type': 'imputed'
-    }
-}
-
-tuned_models = hyperparameter_tuning(single_model, data_dict['X_train_dict'], data_dict['y_train'])
-```
-
-#### Option 4: Conditional Training Scenarios
-```python
-# Define different training scenarios
-scenarios = {
-    'fast': ['LogisticRegression'],  # Quick training
-    'balanced': ['LogisticRegression', 'XGBoost'],  # Balanced speed/performance
-    'comprehensive': ['LogisticRegression', 'RandomForest', 'XGBoost', 'SVM']  # Full training
-}
-
-# Choose scenario
-selected_scenario = 'balanced'  # Change as needed
-
-# Build configuration
-all_configs = get_default_model_configs()
-selected_models = {model: all_configs[model] for model in scenarios[selected_scenario] if model in all_configs}
-
-tuned_models = hyperparameter_tuning(selected_models, data_dict['X_train_dict'], data_dict['y_train'])
-```
-
-### Testing Imports
-
-Test if all imports work correctly:
-```bash
-python test_imports.py
-```
-
-## 📁 Project Structure
-
-```
-Vital_sign_Dataset/
-├── src/                           # Source code package
-│   ├── __init__.py               # Package initialization
-│   ├── utils.py                  # Data loading and preprocessing utilities
-│   ├── train.py                  # Model training and hyperparameter tuning
-│   ├── evaluate.py               # Model evaluation and metrics
-│   ├── visualization.py          # Plotting and visualization functions
-│   └── shap_explainer.py         # SHAP-based model interpretability
-├── notebooks/                     # Jupyter notebooks
-│   ├── example_train.ipynb       # Training example
-│   └── example_eval.ipynb        # Evaluation example
-├── examples/                      # Python script examples
-│   └── train_specific_models.py  # Examples for training specific models
-├── best_models/                   # Saved trained models
-├── results/                       # Prediction results and outputs
-├── requirements.txt               # Python dependencies
-└── README.md                     # This file
-```
-
-## 🔧 API Reference
-
-### Core Functions
-
-#### Data Loading and Preprocessing
-- `load_vitaldb_data()`: Load data from VitalDB
-- `preprocess_data(df)`: Preprocess raw data for ML
-- `prepare_train_test_data(X, y)`: Split data and prepare for different model types
-
-#### Model Training
-- `get_default_model_configs()`: Get predefined model configurations
-- `hyperparameter_tuning(models_config, X_train, y_train)`: Train models with hyperparameter tuning
-- `save_model(model, model_name)`: Save trained model
-- `load_model(model_name)`: Load saved model
-
-#### Model Evaluation
-- `evaluate_models(models_dict, X_test, y_test)`: Evaluate multiple models
-- `calculate_comprehensive_metrics(y_true, y_pred, y_pred_proba)`: Calculate all metrics
-- `print_evaluation_summary(results_df)`: Print formatted results
-
-#### Visualization
-- `plot_roc_curves(models_dict, X_test, y_test)`: Plot ROC curves
-- `plot_pr_curves(models_dict, X_test, y_test)`: Plot Precision-Recall curves
-- `plot_model_comparison(results_df)`: Compare models across metrics
-- `plot_confusion_matrices(models_dict, X_test, y_test)`: Plot confusion matrices
-
-#### SHAP Explanations
-- `explain_model_with_shap(model, X_test, feature_names)`: Generate SHAP explanations
-- `explain_best_model_with_shap(models_dict, X_test, feature_names)`: Explain best model
-- `analyze_logistic_regression_coefficients(model, feature_names)`: Analyze LR coefficients
-
-## 📈 Model Performance
-
-### Best Model Results (Example)
-| Model | ROC-AUC | AUPRC | Accuracy | F1-Score | Precision | Recall |
-|-------|---------|-------|----------|----------|-----------|--------|
-| XGBoost | 0.8244 | 0.4744 | 0.9436 | 0.4706 | 0.4878 | 0.4545 |
-| Logistic Regression | 0.7875 | 0.3110 | 0.7356 | 0.2097 | 0.1256 | 0.6364 |
-| Random Forest | 0.7849 | 0.3060 | 0.9436 | 0.1818 | 0.1000 | 0.5000 |
-| SVM | 0.6316 | 0.2760 | 0.9398 | 0.0000 | 0.0000 | 0.0000 |
-
-### Key Insights
-- **XGBoost** performs best with highest ROC-AUC and F1-Score
-- **Class imbalance** affects precision but models maintain good discrimination (ROC-AUC)
-- **SHAP analysis** reveals most important features for AKI prediction
-
-## 🔍 Model Interpretability
-
-The project includes comprehensive SHAP-based model interpretability:
-
-- **Feature Importance**: Identify which clinical features are most predictive
-- **Individual Predictions**: Understand why specific patients are predicted as high-risk
-- **Model Comparison**: Compare feature importance across different models
-- **Clinical Insights**: Translate ML findings into actionable clinical knowledge
-
-### Example SHAP Features
-- Preoperative creatinine levels
-- Age and demographics
-- Vital signs during surgery
-- Laboratory values
-- Surgical duration and complexity
-
-## 🛠️ Development
-
-### Adding New Models
-
-1. **Add model configuration** in `src/train.py`:
-   ```python
-   'NewModel': {
-       'model': NewModelClassifier(),
-       'params': {'param1': [values], 'param2': [values]},
-       'data_type': 'scaled'  # or 'imputed'
-   }
-   ```
-
-2. **Update data mapping** in evaluation functions
-3. **Test with example notebooks**
-
-### Custom Metrics
-
-Add new metrics in `src/evaluate.py`:
-```python
-def calculate_custom_metric(y_true, y_pred):
-    # Your metric calculation
-    return metric_value
-```
-
-### Custom Visualizations
-
-Add new plots in `src/visualization.py`:
-```python
-def plot_custom_visualization(data, **kwargs):
-    # Your visualization code
-    plt.show()
-```
-
-## 📝 Usage Instructions
-
-### For Researchers
-
-1. **Training New Models**:
-   ```bash
-   jupyter notebook notebooks/example_train.ipynb
-   ```
-
-2. **Evaluating Existing Models**:
-   ```bash
-   jupyter notebook notebooks/example_eval.ipynb
-   ```
-
-3. **Custom Analysis**:
-   ```python
-   from src import *
-   # Your custom code here
-   ```
-
-### For Developers
-
-1. **Install in development mode**:
-   ```bash
-   pip install -e .
-   ```
-
-2. **Run tests**:
-   ```bash
-   pytest tests/
-   ```
-
-3. **Code formatting**:
-   ```bash
-   black src/
-   flake8 src/
-   ```
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
-
-### 1. Fork the Repository
-```bash
-git clone https://github.com/YOUR_USERNAME/Vital_sign_Dataset.git
-cd Vital_sign_Dataset
-```
-
-### 2. Create a Feature Branch
-```bash
-git checkout -b feature/new-feature
-```
-
-### 3. Make Changes
-- Add new functionality
-- Update documentation
-- Add tests if applicable
-
-### 4. Commit Changes
-```bash
-git add .
-git commit -m "Add new feature: description"
-```
-
-### 5. Push and Create Pull Request
-```bash
-git push origin feature/new-feature
-```
-
-Then create a pull request on GitHub.
-
-## 📋 Commit Guidelines
-
-Please follow these commit message conventions:
-
-- `feat:` New features
-- `fix:` Bug fixes
-- `docs:` Documentation updates
-- `style:` Code formatting
-- `refactor:` Code refactoring
-- `test:` Adding tests
-- `chore:` Maintenance tasks
-
-Examples:
-```bash
-git commit -m "feat: add new SHAP visualization function"
-git commit -m "fix: resolve dimension mismatch in SHAP explanation"
-git commit -m "docs: update README with new API reference"
-```
-
-## 🚀 Deployment Instructions
-
-### For Project Members
-
-1. **Setup Development Environment**:
-   ```bash
-   git clone https://github.com/NEU-Bio-Research-Team/Vital_sign_Dataset.git
-   cd Vital_sign_Dataset
-   pip install -r requirements.txt
-   ```
-
-2. **Make Changes and Test**:
-   ```bash
-   jupyter notebook notebooks/example_train.ipynb
-   ```
-
-3. **Commit and Push**:
-   ```bash
-   git add .
-   git commit -m "Your commit message"
-   git push origin main
-   ```
-
-### For Production Use
-
-1. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Load Pre-trained Models**:
-   ```python
-   from src import load_model
-   best_model = load_model('XGBoost_best')
-   ```
-
-3. **Make Predictions**:
-   ```python
-   predictions = best_model.predict(new_data)
-   ```
-
-## 📊 Results and Outputs
-
-The project generates several types of outputs:
-
-- **Models**: Saved in `best_models/` directory
-- **Predictions**: CSV files in `results/` directory
-- **Visualizations**: PNG plots for ROC curves, PR curves, confusion matrices
-- **SHAP Plots**: Feature importance visualizations
-- **Evaluation Results**: Performance metrics in CSV format
-
-## 🏆 Acknowledgments
-
-- **VitalDB Team**: For providing the comprehensive vital signs database
-- **NEU Bio Research Team**: For project development and maintenance
-- **Open Source Community**: For the excellent ML libraries used in this project
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 📞 Contact
-
-- **Project Maintainer**: NEU Bio Research Team
-- **Email**: contact@example.com
-- **GitHub**: [https://github.com/NEU-Bio-Research-Team/Vital_sign_Dataset](https://github.com/NEU-Bio-Research-Team/Vital_sign_Dataset)
-
-## 🔗 Related Resources
-
-- [VitalDB Documentation](https://vitaldb.net/)
-- [KDIGO AKI Guidelines](https://kdigo.org/guidelines/acute-kidney-injury/)
-- [SHAP Documentation](https://shap.readthedocs.io/)
-- [XGBoost Documentation](https://xgboost.readthedocs.io/)
+This repository contains multiple medical AI research projects based on the VitalDB dataset, focusing on predictive healthcare analytics using machine learning and deep learning approaches.
 
 ---
 
-**Note**: This project is for research purposes. Please consult with medical professionals before using predictions for clinical decision-making.
+## 📋 Projects Overview
+
+This repository hosts two independent research projects:
+
+1. **AKI Prediction** (`aki/`) - Acute Kidney Injury prediction from vital signs
+2. **Arrhythmia Classification** (`arrdb/`) - Cardiac arrhythmia detection from ECG signals
+
+Both projects are self-contained with their own data, source code, notebooks, and documentation.
+
+---
+
+## 🔬 Project 1: AKI Prediction
+
+### Overview
+Predict postoperative Acute Kidney Injury (AKI) using vital signs and clinical data from VitalDB surgical patients.
+
+### Key Features
+- **Task**: Binary classification (AKI vs No-AKI)
+- **Dataset**: 3,989 surgical patients, 43 features, 5.26% positive class (highly imbalanced)
+- **Models**: Logistic Regression, Random Forest, XGBoost, SVM
+- **Special Features**:
+  - SHAP-based model interpretability
+  - Interactive medical dashboard (Dash/Plotly)
+  - Comprehensive evaluation metrics
+  - Hyperparameter tuning framework
+
+### Project Structure
+```
+aki/
+├── src/                    # Source code package
+│   ├── utils.py           # Data loading and preprocessing
+│   ├── train.py           # Model training and hyperparameter tuning
+│   ├── evaluate.py        # Model evaluation and metrics
+│   ├── visualization.py   # Plotting and visualization
+│   └── shap_explainer.py  # SHAP-based interpretability
+├── notebooks/             # Jupyter notebooks
+│   ├── data_vis.ipynb     # Data visualization with vital signs
+│   ├── example_train.ipynb # Training examples
+│   └── example_eval.ipynb  # Evaluation examples
+├── dashboard/             # Interactive medical dashboard
+│   ├── app.py            # Main dashboard application
+│   ├── components/       # UI components
+│   └── utils/            # Dashboard utilities
+├── paper/                # LaTeX research paper
+│   ├── main.tex         # Main document
+│   └── sections/        # Paper sections
+├── shap_plots/          # SHAP visualization outputs
+└── README.md            # Detailed AKI project documentation
+```
+
+### Getting Started
+
+**1. Install Dependencies:**
+```bash
+cd aki
+pip install -r requirements.txt  # Check if exists, otherwise use root requirements.txt
+```
+
+**2. Run Data Visualization:**
+```bash
+jupyter notebook notebooks/data_vis.ipynb
+```
+
+**3. Train Models:**
+```bash
+jupyter notebook notebooks/example_train.ipynb
+```
+
+**4. Launch Interactive Dashboard:**
+```bash
+cd dashboard
+pip install -r requirements_dashboard.txt
+python app.py
+# Access at: http://localhost:8050
+```
+
+### Key Results
+- **Best Model**: XGBoost (ROC-AUC: 0.8244, AUPRC: 0.4744, F1-Score: 0.4706)
+- **Model Performance**: All models trained and evaluated with comprehensive metrics
+- **SHAP Interpretability**: Feature importance analysis for all models
+
+### Documentation
+- See `aki/README.md` for detailed project documentation
+- Research paper: `aki/paper/main.tex` (compiled PDF available)
+
+---
+
+## ❤️ Project 2: Arrhythmia Classification (ARRDB)
+
+### Overview
+Multi-level arrhythmia classification from ECG signals using both deep learning and traditional machine learning approaches.
+
+### Key Features
+- **Tasks**:
+  - **Beat-level Classification**: 4 classes (N=Normal, S=Supraventricular, V=Ventricular, U=Unknown)
+  - **Rhythm-level Classification**: Multiple rhythm types (AFIB/AFL, SR, etc.)
+- **Dataset**: 482 patients, 60-beat window sequences, window-level evaluation
+- **Models**:
+  - **Deep Learning**: 1D-CNN, LSTM (PyTorch)
+  - **Traditional ML**: XGBoost, Random Forest, Logistic Regression
+- **Special Features**:
+  - Window-level feature extraction (HRV features for ML, raw RR sequences for DL)
+  - Patient-level data splits for fair comparison
+  - Comprehensive evaluation metrics (9 metrics per model)
+  - Model comparison and visualization framework
+
+### Project Structure
+```
+arrdb/
+├── src/                           # Source code package
+│   ├── data_loader.py            # Load VitalDB annotation files
+│   ├── feature_extractor.py      # HRV feature extraction
+│   ├── preprocess.py             # Data preprocessing and windowing
+│   ├── models.py                 # PyTorch DL model architectures
+│   ├── train_models.py           # Training functions
+│   ├── train_models_simple.py    # Simplified ML training (no PyTorch)
+│   └── evaluate_models.py        # Evaluation and metrics
+├── notebooks/                     # Jupyter notebooks
+│   ├── beat_dl.ipynb             # CNN for beat classification
+│   ├── beat_lstm.ipynb           # LSTM for beat classification
+│   ├── rhythm_dl.ipynb           # CNN for rhythm classification
+│   ├── rhythm_lstm.ipynb         # LSTM for rhythm classification
+│   ├── trad_ml.ipynb             # Traditional ML for both tasks
+│   ├── classification_visualization.ipynb  # DL visualization
+│   ├── ml_visualization.ipynb    # ML visualization
+│   └── general_evaluation.ipynb  # Comprehensive model comparison
+├── experiments/
+│   └── results/
+│       ├── predictions/          # Saved model predictions
+│       ├── metrics/              # Performance metrics (CSV)
+│       └── plots/                # Visualization figures
+├── LabelFile/                    # ECG annotations and metadata
+├── EXP_GUIDE.md                  # Step-by-step execution guide
+├── Notes.md                      # Research notes and paper draft
+└── requirements_arrdb.txt        # Project-specific dependencies
+```
+
+### Getting Started
+
+**1. Install Dependencies:**
+```bash
+cd arrdb
+pip install -r requirements_arrdb.txt
+```
+
+**2. Follow Execution Guide:**
+```bash
+# Read the experiment guide first
+cat EXP_GUIDE.md
+```
+
+**3. Run Experiments (Sequential Order):**
+
+**Phase 1: Model Training**
+```bash
+jupyter notebook notebooks/beat_dl.ipynb          # Train CNN for beats
+jupyter notebook notebooks/beat_lstm.ipynb        # Train LSTM for beats
+jupyter notebook notebooks/rhythm_dl.ipynb        # Train CNN for rhythm
+jupyter notebook notebooks/rhythm_lstm.ipynb      # Train LSTM for rhythm
+jupyter notebook notebooks/trad_ml.ipynb          # Train ML models
+```
+
+**Phase 2: Visualization (Optional)**
+```bash
+jupyter notebook notebooks/classification_visualization.ipynb  # DL viz
+jupyter notebook notebooks/ml_visualization.ipynb              # ML viz
+```
+
+**Phase 3: Comprehensive Evaluation**
+```bash
+jupyter notebook notebooks/general_evaluation.ipynb  # Compare all models
+```
+
+### Key Results
+- **Beat Classification Best**: CNN (Accuracy: 88.21%, F1-Macro: 51.95%)
+- **Rhythm Classification Best**: CNN (Accuracy: 70.82%, F1-Macro: 50.04%)
+- **Window-Level Evaluation**: All models evaluated at same granularity (60-beat windows)
+- **Fair Comparison**: Identical patient splits (60/20/20) and window parameters
+
+### Documentation
+- **Execution Guide**: `arrdb/EXP_GUIDE.md` - Step-by-step notebook execution order
+- **Research Notes**: `arrdb/Notes.md` - Complete research summary and paper draft
+- **Results**: `arrdb/experiments/results/metrics/overall_performance_comparison.csv`
+
+---
+
+## 🗂️ Repository Structure
+
+```
+Vital_sign_Dataset/
+├── aki/                    # Project 1: AKI Prediction
+│   ├── src/               # Source code
+│   ├── notebooks/         # Analysis notebooks
+│   ├── dashboard/         # Interactive dashboard
+│   ├── paper/             # Research paper
+│   └── shap_plots/        # SHAP visualizations
+│
+├── arrdb/                 # Project 2: Arrhythmia Classification
+│   ├── src/               # Source code
+│   ├── notebooks/         # Experiment notebooks
+│   ├── experiments/       # Results and outputs
+│   ├── LabelFile/         # ECG data and annotations
+│   ├── EXP_GUIDE.md       # Execution guide
+│   └── Notes.md           # Research notes
+│
+├── requirements.txt       # Common Python dependencies
+├── backup-context.md      # Project context backup
+└── README.md             # This file
+```
+
+---
+
+## 📦 Common Dependencies
+
+Both projects share core dependencies (see `requirements.txt`):
+
+```bash
+pip install -r requirements.txt
+```
+
+**Core Libraries:**
+- pandas, numpy
+- scikit-learn
+- matplotlib, seaborn
+- jupyter, ipykernel
+- joblib
+
+**Project-Specific:**
+- **AKI**: XGBoost, SHAP, plotly, dash
+- **ARRDB**: PyTorch, XGBoost
+
+---
+
+## 🔬 Dataset Sources
+
+Both projects use data from **VitalDB**:
+
+### AKI Dataset
+- **Source**: VitalDB surgical patient database
+- **Type**: Clinical vital signs and laboratory values
+- **Focus**: Postoperative AKI prediction
+- **Access**: Requires VitalDB API access
+
+### Arrhythmia Database
+- **Source**: VitalDB Arrhythmia Database
+- **Type**: ECG waveforms with R-peak annotations
+- **Focus**: Beat-level and rhythm-level classification
+- **Files**: Located in `arrdb/LabelFile/` (482 patient annotation files)
+
+---
+
+## 📊 Key Differences Between Projects
+
+| Aspect | AKI Prediction | Arrhythmia Classification |
+|--------|---------------|--------------------------|
+| **Task Type** | Binary classification | Multi-class classification (2 tasks) |
+| **Input Data** | Tabular vital signs | Time-series ECG signals (RR intervals) |
+| **Models** | Traditional ML only | DL + Traditional ML |
+| **Granularity** | Patient-level | Window-level (60-beat windows) |
+| **Special Features** | SHAP, Dashboard | Window-level comparison, HRV features |
+| **Evaluation** | Patient-level metrics | Window-level metrics |
+
+---
+
+## 🚀 Quick Start Examples
+
+### AKI Prediction
+```bash
+# 1. Navigate to project
+cd aki
+
+# 2. Run data visualization
+jupyter notebook notebooks/data_vis.ipynb
+
+# 3. Train models
+jupyter notebook notebooks/example_train.ipynb
+
+# 4. Launch dashboard
+cd dashboard && python app.py
+```
+
+### Arrhythmia Classification
+```bash
+# 1. Navigate to project
+cd arrdb
+
+# 2. Read execution guide
+cat EXP_GUIDE.md
+
+# 3. Train models (start with beat classification)
+jupyter notebook notebooks/beat_dl.ipynb
+
+# 4. Compare all models
+jupyter notebook notebooks/general_evaluation.ipynb
+```
+
+---
+
+## 📚 Documentation
+
+### AKI Project
+- **Main README**: `aki/README.md`
+- **Dashboard Guide**: `aki/dashboard/README.md`
+- **Paper**: `aki/paper/main.tex`
+
+### ARRDB Project
+- **Execution Guide**: `arrdb/EXP_GUIDE.md` (sequential notebook execution)
+- **Research Notes**: `arrdb/Notes.md` (complete research summary)
+- **Results**: `arrdb/experiments/results/` (metrics and visualizations)
+
+---
+
+## 🔮 Future Work
+
+### Individual Projects
+- **AKI**: Real-time monitoring integration, model versioning
+- **ARRDB**: Ensemble methods, attention mechanisms, transfer learning
+
+### Cross-Project
+- Multi-task learning combining AKI and Arrhythmia predictions
+- LLM-powered clinical decision support
+- Integration with hospital EHR systems
+- Real-time monitoring systems
+
+---
+
+## 📄 License
+
+See individual project READMEs for license information.
+
+---
+
+## 👥 Contributing
+
+Each project is independently maintained. Please refer to project-specific documentation for contribution guidelines.
+
+---
+
+## 📧 Contact
+
+For questions about specific projects:
+- **AKI Prediction**: See `aki/README.md`
+- **Arrhythmia Classification**: See `arrdb/Notes.md` or `arrdb/EXP_GUIDE.md`
