@@ -1,0 +1,44 @@
+\section{Proposed Method: AXKI Framework}
+\label{sec:method}
+
+\subsection{Overview}
+
+In this study, we propose AXKI (An Explainable AI Scoring System for Acute Kidney Injury), an explainable AI framework that integrates Machine Learning and Explainable AI (XAI) to predict postoperative acute kidney injury risk using clinical vital signs from VitalDB. As illustrated in Figure \ref{fig:framework}, the AXKI system operates through five main stages: (1) input clinical vital signs data, (2) preprocessing including class balancing and data splitting, (3) prediction process with machine learning models trained and evaluated, (4) selection process using XAI to explain predictions, and finally (5) clinical decision-making process generating the final diagnosis about kidney failure risk. Each component in the pipeline is designed to support each other, where ML models provide accurate predictions while XAI ensures transparency and explainability of decisions, thereby increasing trust for clinicians in making treatment decisions.
+
+% TODO: Add flowchart figure
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.9\textwidth]{figures/framework.pdf}
+%     \caption{Overview of the AXKI framework}
+%     \label{fig:framework}
+% \end{figure}
+
+\subsection{Input Data}
+\label{subsec:input}
+
+The AXKI system uses data from the VitalDB dataset \cite{lee2018}, a large database containing clinical vital signs collected during surgeries at multiple hospitals. This dataset includes information from thousands of surgical cases with diverse vital signs recorded continuously in real-time. Clinical vital signs used in this study include: electrocardiography (ECG) for heart rate monitoring and arrhythmias; plethysmography (PPG) providing pulse rate (PLETH\_HR) and oxygen saturation (PLETH\_SPO2); arterial pressure measuring systolic blood pressure (ART\_SBP) and diastolic blood pressure (ART\_DBP); capnography (ECO2) measuring end-tidal CO2 (ECO2\_ETCO2). Additionally, the system integrates surgical data including patient information (age, sex, BMI), surgery information (surgery type, duration), and particularly important blood tests such as creatinine before and after surgery. To determine AKI occurrence, the study uses KDIGO Stage I criteria \cite{kdigo2012} with the formula $AKI = (postop\_cr > preop\_cr \times 1.5)$, meaning when postoperative creatinine increases more than 1.5 times compared to the preoperative value. This criterion was chosen because it is the most common clinical definition and aligns with studies on postoperative AKI \cite{meersch2017}.
+
+\subsection{Data Preprocessing}
+\label{subsec:preprocessing}
+
+Data preprocessing is performed through the following steps: (1) merging and cleaning: removing categorical variables and irrelevant features (caseid, subjectid); (2) class balancing: using StratifiedKFold to ensure uniform distribution of AKI class in train/test split (80/20 ratio); (3) missing value imputation: applying mean imputation for Random Forest and XGBoost; (4) standardization: using StandardScaler for Logistic Regression and SVM. The dataset after preprocessing contains 3,989 cases with 43 features, with class imbalance ratio of approximately 18:1 (5\% AKI positive, 95\% negative).
+
+\subsection{Prediction Process}
+\label{subsec:prediction}
+
+The system uses four machine learning models: Logistic Regression (baseline, uses standardized data), Random Forest (ensemble learning, robust to outliers), XGBoost (powerful gradient boosting), and SVM (RBF kernel). All models are trained with GridSearchCV and StratifiedKFold (5-fold) to tune hyperparameters and avoid overfitting. Performance is evaluated using ROC-AUC (primary metric), AUPRC, Accuracy, Precision, Recall, F1-Score, PPV, NPV, and Specificity. The best model is selected based on ROC-AUC.
+
+\subsection{XAI Selection Process}
+\label{subsec:xai}
+
+To ensure explainability and increase trust in clinical decision support, the system uses SHAP (SHapley Additive exPlanations) framework \cite{lundberg2017} to explain predictions. Positive SHAP values indicate features that increase AKI risk, while negative values indicate features that decrease risk. SHAP explainers used include: TreeExplainer for Random Forest and XGBoost, LinearExplainer for Logistic Regression, and KernelExplainer for SVM. SHAP summary plot and waterfall plots are used to visualize feature importance and explain individual predictions, helping physicians understand the reasoning behind each prediction.
+
+\subsection{Clinical Decision-Making Process}
+\label{subsec:clinical}
+
+System outputs include: (1) binary prediction (AKI or no AKI), (2) risk score (AKI probability from 0-1), (3) feature contributions from SHAP values for explanation, and (4) alerts when risk is high. The system combines model output with clinical judgment to support decision-making without replacing physicians. SHAP explanations are used to make the final diagnosis about kidney failure risk. In the future, the system can be integrated with EHR systems to perform real-time monitoring and continuous risk assessment.
+
+\subsection{Summary}
+
+The AXKI method is designed with five main stages: from input clinical vital signs data, through preprocessing with class balancing, prediction process with four ML models optimized through hyperparameter tuning, selection process using SHAP to explain predictions, to the final clinical decision-making process. The innovation of the method lies in integrating ML and XAI for AKI prediction, with key advantages: (1) comprehensiveness using multiple vital sign sources and ensemble ML models, (2) practicality with easily collectible data and real-time predictions, (3) explainability with SHAP visualization easily understood by clinicians, and (4) scalability allowing addition of features and periodic model updates.
+

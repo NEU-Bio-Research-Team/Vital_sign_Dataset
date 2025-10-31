@@ -1,0 +1,19 @@
+\section{Introduction}
+\label{sec:introduction}
+
+\subsection{Background and Motivation}
+
+An Acute Kidney Injury (AKI) is a serious postoperative complication affecting 5-15\% of surgical patients \cite{hoste2014,kdigo2012}. AKI significantly increases mortality rates, prolongs hospital stays, and escalates healthcare costs \cite{rewa2014}. Early detection of AKI is crucial for timely intervention and improved patient outcomes. Machine learning has shown great potential in predicting clinical outcomes across various medical domains \cite{topol2019}, offering opportunities to develop AI-assisted diagnostic tools for postoperative AKI risk assessment.
+
+\subsection{Problem Statement}
+
+Early prediction of postoperative AKI remains challenging due to the complex interplay of multiple risk factors and the lack of interpretable prediction models. While machine learning approaches have been developed for AKI prediction \cite{koyner2018,tomasev2019}, existing methods often lack explainability, limiting their clinical adoption. Explainable AI has emerged as a critical requirement for medical applications \cite{amann2020}, as clinicians need to understand the reasoning behind predictions to trust and effectively use AI systems in clinical decision support.
+
+\subsection{Proposed Solution and Contributions}
+
+We propose AXKI, an explainable AI framework that integrates machine learning with SHAP-based interpretability \cite{lundberg2017} for predicting postoperative AKI using vital signs from the VitalDB dataset \cite{lee2018}. Our approach employs four machine learning models (Logistic Regression, Random Forest, XGBoost, and SVM) with comprehensive hyperparameter tuning and evaluation using ROC-AUC, AUPRC, and other clinical metrics. The framework achieves ROC-AUC of 0.82-0.84 while providing interpretable predictions through SHAP explanations. Our main contributions include: (1) a novel framework combining ML and XAI for AKI prediction, (2) comprehensive evaluation on VitalDB dataset, (3) clinical decision support with explainable predictions, and (4) achieving best performance with ROC-AUC > 0.82.
+
+\subsection{Paper Organization}
+
+The rest of this paper is organized as follows: Section \ref{sec:method} presents the proposed AXKI framework including data preprocessing, model training, and XAI components. Section \ref{sec:results} shows experimental results and performance comparison. Section \ref{sec:discussion} discusses findings and clinical implications. Finally, Section \ref{sec:conclusion} concludes the paper.
+

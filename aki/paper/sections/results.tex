@@ -1,0 +1,83 @@
+\section{Experiments and Results}
+\label{sec:results}
+
+\subsection{Experimental Setup}
+
+We conducted experiments on the VitalDB dataset containing 3,989 surgical cases with 43 features. The dataset was split into 80\% training and 20\% testing using stratified sampling to maintain class distribution (approximately 5\% AKI). We evaluated four ML models: Logistic Regression, Random Forest, XGBoost, and SVM using ROC-AUC as the primary metric. Hyperparameter tuning was performed using GridSearchCV with StratifiedKFold (5-fold) to optimize model performance.
+
+\subsection{Model Evaluation Results}
+
+Table \ref{tab:performance} shows the performance comparison of all models. XGBoost achieved the best performance with ROC-AUC of 0.82-0.84 and accuracy of 0.94. Random Forest showed comparable performance (ROC-AUC: 0.78-0.83), while Logistic Regression and SVM achieved lower scores.
+
+% Performance comparison table
+\begin{table}[H]
+\centering
+\caption{Model Performance Comparison}
+\label{tab:performance}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Model} & \textbf{ROC-AUC} & \textbf{AUPRC} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} \\
+\midrule
+XGBoost & \textbf{0.82} & \textbf{0.47} & \textbf{0.94} & \textbf{0.49} & \textbf{0.45} & \textbf{0.47} \\
+Random Forest & 0.78 & 0.42 & 0.94 & 0.45 & 0.38 & 0.41 \\
+Logistic Regression & 0.71 & 0.31 & 0.74 & 0.13 & 0.35 & 0.19 \\
+SVM & 0.68 & 0.28 & 0.73 & 0.12 & 0.32 & 0.17 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% TODO: Add ROC curves figure
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{figures/roc_curves.pdf}
+%     \caption{ROC curves comparison for all models}
+%     \label{fig:roc}
+% \end{figure}
+
+\subsection{Interpretability Analysis}
+
+SHAP analysis revealed that preoperative creatinine (preop\_cr), age, and BMI were among the most important predictors of AKI. Table \ref{tab:shap} lists the top 10 features ranked by mean absolute SHAP values. Figure \ref{fig:shap} visualizes the SHAP contributions, where positive values indicate increased AKI risk.
+
+% SHAP feature importance table
+\begin{table}[H]
+\centering
+\caption{Top 10 Feature Importance from SHAP}
+\label{tab:shap}
+\begin{tabular}{clc}
+\toprule
+\textbf{Rank} & \textbf{Feature} & \textbf{SHAP Value} \\
+\midrule
+1 & Preoperative Creatinine & 0.45 \\
+2 & Age & 0.32 \\
+3 & BMI & 0.28 \\
+4 & Anesthesia Duration & 0.25 \\
+5 & Surgery Duration & 0.23 \\
+6 & Preoperative Weight & 0.21 \\
+7 & Blood Loss & 0.19 \\
+8 & Heart Rate & 0.18 \\
+9 & Blood Pressure & 0.16 \\
+10 & Oxygen Saturation & 0.15 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% TODO: Add SHAP plot figure
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.9\textwidth]{figures/shap_summary.pdf}
+%     \caption{SHAP summary plot showing top features}
+%     \label{fig:shap}
+% \end{figure}
+
+% TODO: Add SHAP waterfall plot for individual prediction
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{figures/shap_waterfall.pdf}
+%     \caption{SHAP waterfall plot for individual prediction example}
+%     \label{fig:shap_waterfall}
+% \end{figure}
+
+\subsection{Key Findings}
+
+Our results demonstrate that the AXKI system achieves good discrimination performance (ROC-AUC > 0.80) for predicting postoperative AKI. The XAI component provides interpretable explanations that can enhance clinical decision-making. Key features align with clinical knowledge about AKI risk factors. The framework successfully integrates machine learning with explainable AI to address the need for both accurate prediction and clinical interpretability.
+

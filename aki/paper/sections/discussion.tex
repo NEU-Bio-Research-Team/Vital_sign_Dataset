@@ -1,0 +1,19 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Key Findings}
+
+The AXKI framework achieves good discrimination performance (ROC-AUC > 0.82) for predicting postoperative AKI using clinical vital signs. The integration of machine learning with SHAP-based explainability addresses the critical gap in existing methods that lack interpretability. The top features identified by SHAP analysis align with clinical knowledge about AKI risk factors, including preoperative creatinine, age, BMI, and surgical parameters.
+
+\subsection{Clinical Implications}
+
+The interpretability provided by SHAP explanations can significantly enhance clinical decision-making by helping physicians understand which factors contribute most to AKI risk for individual patients. This transparency increases trust in the system and facilitates its adoption in clinical practice. The framework can assist in early AKI detection, potentially enabling timely intervention and improved patient outcomes.
+
+\subsection{Limitations}
+
+Several limitations should be acknowledged: (1) The dataset exhibits class imbalance (approximately 5\% positive class), which may affect model performance on minority class; (2) The study uses single-center data from VitalDB, limiting generalizability; (3) The 7-day window for postoperative AKI detection may not capture all cases; and (4) External validation on independent datasets is needed to confirm generalizability.
+
+\subsection{Future Work}
+
+Future work will focus on: (1) expanding to larger multi-center datasets to improve generalizability, (2) incorporating additional features such as medication history and comorbidities, (3) implementing real-time deployment for continuous monitoring, (4) integration with existing EHR systems, and (5) prospective validation studies to assess clinical utility.
+

@@ -1,0 +1,48 @@
+{
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "pdflatex ➞ bibtex ➞ pdflatex × 2",
+            "tools": [
+                "pdflatex-system",
+                "bibtex-system",
+                "pdflatex-system",
+                "pdflatex-system"
+            ]
+        }
+    ],
+    "latex-workshop.latex.tools": [
+        {
+            "name": "pdflatex-system",
+            "command": "/home/orlab/GIT_PROJECT/Vital_sign_Dataset/paper/pdflatex-system.sh",
+            "args": [
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "-output-directory=%OUTDIR%",
+                "%DOC%"
+            ]
+        },
+        {
+            "name": "bibtex-system",
+            "command": "/home/orlab/GIT_PROJECT/Vital_sign_Dataset/paper/bibtex-system.sh",
+            "args": [
+                "%DOCFILE%"
+            ]
+        }
+    ],
+    "latex-workshop.latex.outDir": "./paper/out",
+    "latex-workshop.latex.autoBuild.run": "never",
+    "latex-workshop.view.pdf.viewer": "tab",
+    "latex-workshop.latex.clean.fileTypes": [
+        "*.aux",
+        "*.bbl",
+        "*.blg",
+        "*.idx",
+        "*.ind",
+        "*.lof",
+        "*.lot",
+        "*.out",
+        "*.toc"
+    ],
+    "latex-workshop.latex.clean.subfolder.enabled": false
+}

@@ -1,0 +1,21 @@
+⚠️ LATeX Compilation Not Working Locally
+
+Your conda texlive-core installation is incomplete (missing format files).
+
+✅ EASIEST SOLUTION: Use Overleaf
+
+1. Go to: https://www.overleaf.com
+2. Sign up (free)
+3. Click "New Project" → "Upload Project"
+4. Upload the paper/ folder
+5. Start editing - compiles automatically!
+
+Your LaTeX files are already perfect - they just need proper compilation!
+
+Why Overleaf is Better:
+- Works immediately
+- No installation needed  
+- Real-time PDF preview
+- Free to use
+
+See OVERLEAF_SETUP.md for detailed instructions.

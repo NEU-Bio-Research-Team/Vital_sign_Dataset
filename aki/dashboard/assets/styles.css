@@ -1,0 +1,180 @@
+/* AXKI Medical Dashboard - Custom Styling */
+/* DARK MODE */
+
+body {
+    font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+    background-color: #1a1a1a;
+    color: #e8e8e8;
+}
+
+/* Dark mode for all cards */
+.card {
+    background-color: #2d2d2d;
+    border-color: #3d3d3d;
+}
+
+.card-header {
+    background-color: #1f1f1f !important;
+    color: #ffffff !important;
+    border-color: #3d3d3d;
+}
+
+.card-body {
+    color: #e8e8e8;
+}
+
+/* Navbar */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
+}
+
+/* Cards - Already defined above */
+
+/* Buttons */
+.btn {
+    border-radius: 5px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Vital signs color scheme (from flowchart) */
+.vital-sign-art {
+    color: #C73E1D; /* Clinical Red */
+}
+
+.vital-sign-pleth {
+    color: #2E86AB; /* Ocean Blue */
+}
+
+.vital-sign-spo2 {
+    color: #06A77D; /* Medical Teal */
+}
+
+.vital-sign-eco2 {
+    color: #6A4C93; /* Deep Purple */
+}
+
+/* Chat messages - Dark mode */
+.chat-message-ai {
+    background-color: #2a3a4a;
+    border-left: 3px solid #2E86AB;
+    color: #e8e8e8;
+}
+
+.chat-message-user {
+    background-color: #3a2a4a;
+    border-left: 3px solid #6A4C93;
+    color: #e8e8e8;
+}
+
+/* Dark background for chat container */
+div[id*="chat"] {
+    background-color: #1a1a1a !important;
+}
+
+/* Loading spinner */
+.spinner-border {
+    color: #2E86AB;
+}
+
+/* Risk level colors */
+.risk-low {
+    color: #27AE60;
+}
+
+.risk-medium {
+    color: #F18F01;
+}
+
+.risk-high {
+    color: #C73E1D;
+}
+
+/* Results display */
+.prediction-probability {
+    font-size: 48px;
+    font-weight: bold;
+    line-height: 1.2;
+}
+
+/* Scrollbar styling - Dark mode */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2d2d2d;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+
+/* Patient info card - Dark mode */
+.patient-info-key {
+    color: #b8b8b8;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Dark mode text colors */
+h1, h2, h3, h4, h5, h6, p {
+    color: #e8e8e8;
+}
+
+/* Text muted in dark mode */
+.text-muted {
+    color: #888888 !important;
+}
+
+/* Model selector */
+.Select-control {
+    border-color: #BDC3C7;
+}
+
+/* Hover effects */
+.vitals-graph {
+    transition: opacity 0.3s;
+}
+
+.vitals-graph:hover {
+    opacity: 0.95;
+}
+
+/* Badge styling */
+.badge {
+    border-radius: 4px;
+}
+
+/* Footer/Footer text - Already defined above */
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+    .col-md-3 {
+        width: 100%;
+    }
+}
+
+/* Print styles */
+@media print {
+    .navbar,
+    .btn,
+    .scenario-selector {
+        display: none !important;
+    }
+}
+

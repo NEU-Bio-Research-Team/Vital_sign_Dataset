@@ -1,0 +1,73 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese,english]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{url}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{hyperref}
+\usepackage{natbib}
+\bibliographystyle{unsrtnat}
+
+% Page setup
+\geometry{margin=2.5cm}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    citecolor=blue
+}
+
+% Bibliography file
+
+% Title information
+\title{AXKI: An Explainable AI Framework for Postoperative Acute Kidney Injury Prediction Using Vital Signs and Machine Learning}
+\author{Your Name \and Co-Author}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Acute Kidney Injury (AKI) is a serious postoperative complication affecting 5-15\% of surgical patients. Early prediction of AKI is crucial for timely intervention and improved patient outcomes. This paper proposes AXKI, an explainable AI framework that integrates machine learning with SHAP-based interpretability for predicting postoperative AKI using vital signs from the VitalDB dataset. We evaluate four machine learning models (Logistic Regression, Random Forest, XGBoost, and SVM) achieving ROC-AUC of 0.82-0.84 with interpretable predictions through SHAP explanations. The framework addresses the critical need for both accurate prediction and clinical interpretability in postoperative AKI risk assessment.
+
+\textbf{Keywords:} Acute Kidney Injury, Machine Learning, Explainable AI, SHAP, Vital Signs, Clinical Decision Support
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+% Introduction
+\input{sections/introduction}
+
+% Method
+\input{sections/method}
+
+% Results
+\input{sections/results}
+
+% Discussion
+\input{sections/discussion}
+
+% Conclusion
+\input{sections/conclusion}
+
+% Print bibliography
+\newpage
+\bibliography{references}
+
+\end{document}
+

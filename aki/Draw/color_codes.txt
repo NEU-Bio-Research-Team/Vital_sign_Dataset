@@ -1,0 +1,37 @@
+VITALDB AKI PREDICTION FLOWCHART - COLOR CODES
+===============================================
+
+COPY-PASTE READY COLOR CODES FOR DRAW.IO
+-----------------------------------------
+
+PRIMARY COLORS:
+---------------
+#2E86AB  Ocean Blue          (Input Data)
+#06A77D  Medical Teal        (Preprocessing)
+#3498DB  Bright Blue         (Scaled Data)
+#F18F01  Warm Orange         (Imputed Data)
+#6A4C93  Deep Purple         (ML Training)
+#C73E1D  Clinical Red        (Evaluation)
+#27AE60  Green               (Best Model)
+#8E44AD  Purple              (Interpretability)
+#FFB627  Golden Yellow       (Output)
+
+SUPPORTING COLORS:
+------------------
+#FFFFFF  White               (Background)
+#2C3E50  Dark Blue-Gray      (Text)
+#34495E  Medium Gray         (Borders/Arrows)
+#BDC3C7  Light Gray          (Grid)
+
+QUICK COPY LIST:
+----------------
+Input:              #2E86AB
+Preprocessing:      #06A77D
+Scaled:             #3498DB
+Imputed:            #F18F01
+ML Training:        #6A4C93
+Evaluation:         #C73E1D
+Best Model:         #27AE60
+SHAP:               #8E44AD
+Output:             #FFB627
+
