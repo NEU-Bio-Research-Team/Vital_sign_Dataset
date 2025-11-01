@@ -1,0 +1,6 @@
+# Keep directory but ignore large data files
+*.csv
+*.pkl
+*.h5
+*.npz
+!README.md
