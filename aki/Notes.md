@@ -22,14 +22,150 @@ This research investigates machine learning approaches for predicting postoperat
 - **Clinical Significance**: Early AKI prediction can improve patient outcomes through proactive intervention
 - **Challenge**: Highly imbalanced dataset (5.26% positive class) requiring specialized handling
 
-### 1.3 Dataset
+### 1.3 Understanding Granularity Levels
+
+#### 1.3.1 Patient-Level Approach
+
+**Definition**: Each data point represents one entire patient. Features are aggregated summary statistics (means, totals, etc.) spanning the entire surgical episode.
+
+**Characteristics**:
+- One sample per patient
+- Features describe the whole patient/surgery (e.g., "average blood pressure during surgery")
+- Prediction: Does this patient develop AKI postoperatively?
+- Decision point: After surgery completion
+
+**Real-World Example**:
+```
+Patient: 67-year-old male undergoing coronary artery bypass graft
+Input Features:
+  - Demographics: age=67, sex=Male, BMI=28.5
+  - Preop labs: creatinine=1.1 mg/dL, Hb=12.5 g/dL
+  - Surgical: ASA=3, duration=180 minutes, emergency=No
+  - Aggregated vital signs: avg_SBP=125 mmHg, avg_HR=75 bpm, time_below_65mmHg=15%
+
+Prediction: AKI Risk Score = 0.72 (High Risk)
+Clinical Action: Enhanced postoperative monitoring, consider nephroprotective strategies
+```
+
+**When to Use**:
+- Preoperative risk assessment before surgery begins
+- Postoperative outcome prediction when entire surgical data is available
+- Resource allocation (ICU beds, nephrology consultation)
+- Patient counseling and informed consent
+
+**Clinical Workflow**:
+```
+[Patient arrives] → [Preop assessment] → [Patient-level features collected] 
+→ [Risk prediction BEFORE surgery] → [Surgery proceeds] → [Postoperative monitoring]
+```
+
+#### 1.3.2 Window-Level Approach (Temporal Features)
+
+**Definition**: The patient's surgery is divided into time windows (e.g., 10-minute segments). Features are extracted per window, capturing dynamic patterns during surgery.
+
+**Characteristics**:
+- Multiple samples per patient (one per window)
+- Features describe temporal patterns (e.g., "mean arterial pressure in this 10-min window")
+- Prediction: Is AKI developing NOW (during this window)?
+- Decision point: Continuously during surgery
+
+**Real-World Example**:
+```
+Same Patient During Surgery:
+
+Window 1 (minutes 0-10):
+  - avg_MBP=75 mmHg, time_below_65mmHg=5%, trend=slight_decrease
+  - AKI Risk = 0.45 (Moderate)
+
+Window 5 (minutes 40-50):  ← Hypotension event detected
+  - avg_MBP=55 mmHg, time_below_65mmHg=80%, trend=rapid_decrease
+  - AKI Risk = 0.85 (Very High)  ← ALERT
+
+Window 12 (minutes 110-120):
+  - avg_MBP=70 mmHg, time_below_65mmHg=20%, trend=stabilizing
+  - AKI Risk = 0.60 (Moderate-High)
+```
+
+**When to Use**:
+- Real-time intraoperative monitoring
+- Early warning systems during surgery
+- Dynamic risk assessment as surgical events occur
+- Intervention triggers (e.g., fluid bolus when hypotension detected)
+
+**Clinical Workflow**:
+```
+[Surgery begins] → [Continuous monitoring] → [Window-level features every 10 min]
+→ [Risk updated in real-time] → [Alert if high risk] → [Interventions during surgery]
+→ [Window 1→2→3→...→N] → [Surgery ends] → [Final window-level prediction]
+```
+
+#### 1.3.3 Combined Approach (Hybrid)
+
+**Definition**: Combines static patient-level features with dynamic temporal patterns extracted from windows.
+
+**Characteristics**:
+- Patient-level context + window-level patterns
+- Best of both approaches
+- Most comprehensive predictive power
+
+**Real-World Example**:
+```
+Patient: 67-year-old male, CKD Stage 2 (patient-level context)
+
+During Surgery - Window 5:
+  Patient-level context:
+    - age=67, preop_cr=1.1, CKD_history=Yes, ASA=3
+  
+  Window-level temporal features:
+    - avg_MBP=55 mmHg (window 5)
+    - time_below_65mmHg=80% (window 5)
+    - avg_MBP=68 mmHg (window 4)  ← recent history
+    - trend=decreasing
+  
+Combined Prediction: AKI Risk = 0.92 (Very High)
+Rationale: "High-risk patient (CKD, age) + Hypotension event = Critical risk"
+
+Clinical Action: 
+  IMMEDIATE: Fluid resuscitation, vasopressor support
+  POSTOP: ICU admission, nephrology consult, daily creatinine monitoring
+```
+
+**When to Use**:
+- Best overall predictive performance (proven in our experiments)
+- Clinically most realistic: clinicians use both patient history AND real-time monitoring
+- Deployment: Preoperative patient context + intraoperative alerts
+- Comprehensive risk stratification
+
+**Clinical Workflow**:
+```
+[Preop] → [Patient-level baseline risk] → [Surgery begins]
+→ [Real-time monitoring: Patient context + Window features]
+→ [Combined risk updates throughout surgery]
+→ [Alert if risk exceeds threshold]
+→ [Interventions based on combined prediction]
+→ [Postoperative monitoring]
+```
+
+#### 1.3.4 Comparison Summary
+
+| Aspect | Patient-Level | Window-Level | Combined |
+|--------|--------------|--------------|----------|
+| **Granularity** | 1 sample/patient | Multiple samples/patient | 1 sample/patient |
+| **Features** | Aggregated summary | Temporal patterns | Static + Dynamic |
+| **Prediction Timing** | Before or after surgery | During surgery (continuous) | Throughout care |
+| **Use Case** | Preoperative screening, resource allocation | Real-time alerts, interventions | Comprehensive risk management |
+| **Computational Cost** | Low | Moderate | Moderate |
+| **Clinical Action** | Preventive strategies, planning | Immediate interventions | Both preventive and reactive |
+| **Best ROC-AUC (Our Results)** | 0.7577 (XGBoost) | 0.6862 (temporal only) | **0.7873 (XGBoost)** ✨ |
+
+### 1.4 Dataset
 - **Source**: VitalDB surgical patient database
 - **Total Cases**: 3,989 patients
-- **Features**: 43 numerical features (after preprocessing)
+- **Features**: 
+  - **Patient-level**: 43 numerical features (demographics, preoperative labs, surgical characteristics)
+  - **Temporal**: 130 features (intraoperative vital signs: BP, HR, SpO2, etc.)
+  - **Combined**: 173 features (43 + 130)
 - **AKI Prevalence**: 210 cases (5.26%) - highly imbalanced
-- **Data Types**: 
-  - **Patient-level**: Demographics, preoperative labs, surgical characteristics
-  - **Temporal**: Intraoperative vital signs (BP, HR, SpO2, etc.) extracted from time-series data
 
 ---
 
@@ -447,36 +583,233 @@ Clinical Decision Support
 
 ---
 
-## 8. Clinical Implications
+## 8. Clinical Implications and Deployment Scenarios
 
-### 8.1 Practical Applications
-1. **Preoperative Risk Assessment**:
-   - Use tabular features for baseline risk stratification
-   - Identify high-risk patients before surgery
+### 8.1 Practical Applications by Granularity
 
-2. **Intraoperative Monitoring**:
-   - Integrate temporal features for real-time risk updates
-   - Alert clinicians to hypotension patterns associated with AKI
+#### 8.1.1 Patient-Level Deployment
 
-3. **Postoperative Surveillance**:
-   - Combine predictions with clinical monitoring
-   - Early intervention for high-risk patients
+**Scenario 1: Preoperative Screening Clinic**
+```
+Use Case: Identify high-risk patients before scheduled surgery
+Timing: 1-7 days before surgery
+Input: Patient demographics, labs, planned surgery characteristics
+Output: AKI risk score (Low/Moderate/High/Very High)
+Action: 
+  - Low risk: Standard postoperative monitoring
+  - Moderate risk: Plan enhanced postop labs, consider nephroprotective agents
+  - High risk: Postpone if possible, nephrology preop consultation, ICU bed reservation
+  - Very high: Consider alternative procedures, intensive counseling
 
-### 8.2 Model Deployment Considerations
-1. **Feature Availability**:
-   - Tabular features: Readily available from EHR
-   - Temporal features: Require intraoperative monitoring data
-   - Deployment strategy depends on available infrastructure
+Clinical Example:
+  Patient: 72-year-old with diabetes and CKD Stage 3
+  Patient-level prediction: AKI risk = 0.78
+  Clinical decision: Postpone elective surgery, optimize renal function first
+```
 
-2. **Computational Requirements**:
-   - Tabular-only models: Fast, low-resource
-   - Combined models: Slightly higher computational cost
-   - Temporal feature extraction: Moderate cost (can be precomputed)
+**Scenario 2: Resource Allocation**
+```
+Use Case: Plan ICU beds, nephrology consultations, postop care
+Timing: Day before or morning of surgery
+Input: Complete patient profile
+Output: Resource allocation recommendations
+Action:
+  - Top 10% risk: Guaranteed ICU bed, scheduled nephrology consult
+  - Top 25% risk: Enhanced postop ward monitoring, standby nephrology
+  - Standard: Regular floor monitoring
 
-3. **Interpretability**:
-   - SHAP explanations critical for clinical acceptance
-   - Feature importance aligns with clinical reasoning
-   - Temporal thresholds (e.g., time below 65 mmHg) are clinically meaningful
+Clinical Example:
+  Surgery schedule: 20 patients tomorrow
+  Patient-level predictions: 3 high-risk, 7 moderate-risk
+  Resource planning: Reserve 3 ICU beds, schedule 3 nephrology consults
+```
+
+#### 8.1.2 Window-Level Deployment
+
+**Scenario 1: Real-Time Intraoperative Alert System**
+```
+Use Case: Detect AKI risk during surgery and trigger interventions
+Timing: Continuous throughout surgery
+Input: Vital signs from last 10-minute window
+Output: Real-time risk score and alert if high
+Action:
+  - Risk < 0.5: Continue monitoring
+  - Risk 0.5-0.7: Yellow alert → Increase monitoring frequency
+  - Risk > 0.7: Red alert → Immediate intervention (fluids, vasopressors)
+
+Clinical Example:
+  Surgery: 180-minute cardiac surgery
+  Window 1 (0-10 min): MBP stable → Risk = 0.35, continue
+  Window 9 (80-90 min): MBP drops to 58 mmHg → Risk = 0.82, RED ALERT
+  Clinical action: Immediate 500ml saline bolus, start norepinephrine
+  Window 10 (90-100 min): MBP recovers → Risk = 0.55, downgrade alert
+```
+
+**Scenario 2: Hypotension Pattern Recognition**
+```
+Use Case: Identify prolonged hypotension associated with AKI
+Timing: Mid-surgery evaluation
+Input: Cumulative windows showing hypotension patterns
+Output: Pattern-based risk assessment
+Action:
+  - <5% time below 65mmHg: Low concern
+  - 5-15% time below: Moderate concern, optimize hemodynamics
+  - >15% time below: High concern, aggressive hemodynamic management
+
+Clinical Example:
+  At minute 120 of surgery:
+  - Window analysis: 8 of 12 windows showed MBP < 65mmHg
+  - time_below_65mmHg = 65% of total surgery time
+  - Window-level prediction: AKI risk = 0.88
+  - Clinical action: Increase fluids, optimize cardiac output, consider ICU postop
+```
+
+#### 8.1.3 Combined Approach Deployment
+
+**Scenario 1: Comprehensive Risk Management System**
+```
+Use Case: Full-spectrum care from preop to postop
+Timing: Preop assessment + continuous intraoperative monitoring
+
+Preoperative Phase:
+  Input: Patient-level features
+  Output: Baseline risk score
+  Action: Plan surgery accordingly
+
+Intraoperative Phase:
+  Input: Patient context + real-time window features
+  Output: Dynamic risk updates
+  Action: Adjust interventions based on combined risk
+
+Postoperative Phase:
+  Input: Preop + intraoperative data
+  Output: Final AKI risk for postop care
+  Action: Guide monitoring and treatment
+
+Clinical Example (Complete Journey):
+  
+  [Preop Day]
+  Patient: 65-year-old, hypertension, preop_cr=1.2
+  Patient-level prediction: Baseline risk = 0.68 (High)
+  Action: Patient counseling, plan ICU postop, nephrology notified
+  
+  [Surgery Day - Intraoperative]
+  Baseline risk: 0.68 (from preop)
+  
+  Window 1-3: Stable vitals → Combined risk = 0.65 (moderate)
+  
+  Window 7: Hypotension event (MBP=55 for 8 minutes)
+  Window features: time_below_65mmHg=80%
+  Combined prediction: Risk = 0.91 (Critical)
+  Action: Aggressive fluid resuscitation, vasopressors, ICU bed confirmed
+  
+  Window 8-12: Stabilized → Combined risk = 0.75 (high)
+  
+  [Postoperative]
+  Final combined prediction: Risk = 0.82 (Very High)
+  Action: ICU admission, daily creatinine, nephrology daily follow-up,
+          hold nephrotoxic medications, optimize hemodynamics
+```
+
+**Scenario 2: Enhanced Early Warning System**
+```
+Use Case: Detect at-risk patients who deteriorate during routine surgery
+Timing: Continuous monitoring in all surgeries
+
+Patient Context: Low-risk profile (age=45, healthy, preop_cr=0.8)
+Baseline patient-level risk: 0.35 (Low)
+
+Surgery: Routine laparoscopic cholecystectomy (expected 1 hour)
+Expected: Low risk throughout
+
+Actual Intraoperative Events:
+  Window 1: Stable → Combined risk = 0.32 ✓
+  
+  Window 4: Unexpected bleeding, BP drops
+  Combined risk: 0.72 (Upgraded from Low to High)
+  Action: Immediate hemostasis, fluid bolus
+  
+  Window 5-6: Continued instability
+  Combined risk: 0.79 → 0.85
+  Action: Blood transfusion, intensive hemodynamic monitoring
+  
+  Outcome: Patient develops AKI despite low baseline risk
+  System success: Combined approach caught deterioration early
+```
+
+### 8.2 Deployment Considerations by Approach
+
+#### 8.2.1 Patient-Level Models
+
+**Infrastructure Requirements**:
+- EHR integration for patient demographics and labs
+- Minimal computational resources
+- Can run on standard hospital servers
+
+**Deployment Options**:
+- **Standalone screening tool**: Preop clinic app
+- **EHR integrated**: Automatic risk calculation on patient admission
+- **Scheduling system**: Resource allocation dashboard
+
+**Advantages**:
+- Simple implementation
+- Fast predictions (<1 second)
+- Interpretable features (age, labs, etc.)
+- Low infrastructure cost
+
+**Limitations**:
+- Cannot respond to intraoperative events
+- Post-surgery only predictions (limited intervention window)
+
+#### 8.2.2 Window-Level Models
+
+**Infrastructure Requirements**:
+- Real-time vital signs monitoring system
+- Continuous data processing pipeline
+- Alert/monitoring dashboard
+
+**Deployment Options**:
+- **Anesthesia monitor integration**: Real-time display during surgery
+- **Independent alert system**: Parallel monitoring for surgical units
+- **ICU monitoring**: Continuous post-operative risk assessment
+
+**Advantages**:
+- Real-time responsiveness
+- Early intervention capability
+- Can prevent AKI (not just predict)
+
+**Limitations**:
+- Higher infrastructure complexity
+- Requires continuous data streams
+- May generate false alerts (alert fatigue)
+
+#### 8.2.3 Combined Models (Recommended)
+
+**Infrastructure Requirements**:
+- Patient data warehouse (EHR)
+- Real-time monitoring integration
+- Hybrid prediction pipeline
+
+**Deployment Options**:
+- **Complete clinical decision support system**: Preop + intraop + postop integration
+- **Tiered deployment**: Start with patient-level, add window-level later
+- **Specialized units**: Deploy in cardiac, vascular surgery first (higher AKI rates)
+
+**Advantages**:
+- Best predictive performance (ROC-AUC: 0.7873)
+- Clinically most realistic
+- Comprehensive care coverage
+- Combines preventive and reactive strategies
+
+**Limitations**:
+- Most complex deployment
+- Requires coordinated data sources
+- Higher initial setup cost
+
+**Recommended Deployment Strategy**:
+1. **Phase 1**: Deploy patient-level models in preop clinics (Quick win, establishes value)
+2. **Phase 2**: Add window-level monitoring in high-risk surgeries (Proof of concept)
+3. **Phase 3**: Full combined deployment in all surgeries (Optimal performance)
 
 ---
 
@@ -563,6 +896,22 @@ This research demonstrates that:
 
 ---
 
-**Last Updated**: 2024-11-01  
+**Last Updated**: 2024-12-01  
 **Author**: Research Assistant  
 **Status**: Active Research Project
+
+---
+
+## Change Log
+
+### 2024-12-01 - Comprehensive Granularity Documentation
+- **Added Section 1.3**: Detailed explanation of Patient-Level vs Window-Level vs Combined approaches
+- **Real-world examples** for each granularity level with clinical scenarios
+- **Comparison table** summarizing characteristics of each approach
+- **Section 8.1**: Expanded with detailed deployment scenarios:
+  - Patient-level: Preoperative screening, resource allocation
+  - Window-level: Real-time alerts, hypotension pattern recognition
+  - Combined: Comprehensive risk management, early warning systems
+- **Section 8.2**: Deployment considerations and recommended phased approach
+- Added clinical workflow diagrams for each approach
+- All examples now include specific patient data, predictions, and clinical actions
