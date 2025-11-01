@@ -1,6 +1,6 @@
 # Project Context Backup - Vital Sign Dataset Projects
 
-**Last Updated:** 2024-12-01
+**Last Updated:** 2024-12-01 (Evening Session)
 **AI Readiness:** 100%
 
 ## Repository Overview
@@ -245,6 +245,23 @@ Vital_sign_Dataset/
   - Bibliography with 10 references
 - LaTeX project now fully functional locally
 - Can edit `.tex` files and view compiled PDF side-by-side in VS Code
+
+### 2024-12-01 - Evening Session: Comprehensive Granularity Documentation
+- **Major update to `aki/Notes.md`**: Added comprehensive explanations of patient-level vs window-level approaches
+  - **New Section 1.3**: "Understanding Granularity Levels"
+    - Patient-Level Approach: Definition, characteristics, real-world example with clinical workflow
+    - Window-Level Approach: Definition, characteristics, temporal feature extraction example
+    - Combined Approach: Hybrid method with comprehensive clinical example
+    - Comparison table: 8 aspects (granularity, features, timing, use cases, etc.)
+  - **Expanded Section 8**: "Clinical Implications and Deployment Scenarios"
+    - **Section 8.1**: Practical Applications by Granularity (6 detailed scenarios)
+      - Patient-level: Preoperative screening, resource allocation
+      - Window-level: Real-time alerts, hypotension pattern recognition
+      - Combined: Comprehensive risk management, early warning systems
+    - **Section 8.2**: Deployment Considerations (infrastructure, advantages, limitations, phased strategy)
+  - **Added real-world examples** with specific patient data, predictions, and clinical actions
+  - **Line count**: Expanded from 569 to 917 lines (+348 lines of new content)
+- **Updated change log** in Notes.md with latest documentation additions
 
 ### 2024-12-01 - Session: Processed Features Folder & Save/Load Functionality
 - **Created `aki/processed/` folder** for temporal feature storage:
