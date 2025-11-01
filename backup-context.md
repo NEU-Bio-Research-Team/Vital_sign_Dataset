@@ -1,6 +1,6 @@
 # Project Context Backup - Vital Sign Dataset Projects
 
-**Last Updated:** 2024-12-XX
+**Last Updated:** 2024-12-01
 **AI Readiness:** 100%
 
 ## Repository Overview
@@ -64,6 +64,9 @@ Vital_sign_Dataset/
 │   │   ├── color_codes.txt
 │   │   └── *_outline*.md
 │   ├── examples/                  # Python script examples
+│   ├── processed/                 # Processed temporal features
+│   │   ├── .gitignore            # Exclude large CSV files
+│   │   └── temporal_features_aki.csv  # Extracted features (not in git)
 │   ├── shap_plots/                # SHAP visualization outputs
 │   ├── Notes.md                   # Research notes and findings
 │   └── README.md                  # AKI project documentation
@@ -242,6 +245,18 @@ Vital_sign_Dataset/
   - Bibliography with 10 references
 - LaTeX project now fully functional locally
 - Can edit `.tex` files and view compiled PDF side-by-side in VS Code
+
+### 2024-12-01 - Session: Processed Features Folder & Save/Load Functionality
+- **Created `aki/processed/` folder** for temporal feature storage:
+  - Added `.gitignore` to exclude large CSV files from git
+  - Folder ready to store extracted features
+  - Prevents re-extraction of temporal features (saves 2.5+ hours)
+- **Added save/load functionality to `Com_temporal_features_aki.ipynb`**:
+  - **Cell 7**: Saves extracted temporal features to `processed/temporal_features_aki.csv` after extraction
+  - **Cell 9**: Optional cell to load pre-saved features and skip 2.5-hour extraction
+  - Features automatically saved: 130 temporal features for 3,989 cases
+  - Workflow: Extract once → Save → Load on subsequent runs
+- **Updated repository structure**: Added processed/ folder to backup-context.md documentation
 
 ### 2024-11-01 - Session: Temporal Features Analysis & Documentation
 - **Created comprehensive research notes**: `aki/Notes.md`
