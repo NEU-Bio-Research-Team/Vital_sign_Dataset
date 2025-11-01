@@ -36,12 +36,18 @@ Vital_sign_Dataset/
 │   │   ├── visualization.py      # Plotting and visualization
 │   │   └── shap_explainer.py     # SHAP-based interpretability
 │   ├── notebooks/                 # Jupyter notebooks
-│   │   ├── data_vis.ipynb        # Data visualization with vital signs
-│   │   ├── example_train.ipynb   # Training example
-│   │   ├── example_eval.ipynb    # Evaluation example
-│   │   ├── aki_prediction.ipynb  # Original AKI prediction
-│   │   ├── aki_pred_hyper.ipynb  # Hyperparameter tuning
-│   │   └── dataset_analysis.ipynb # Dataset analysis
+│   │   ├── Pat_*.ipynb           # Patient-level experiments
+│   │   │   ├── Pat_dl_examination.ipynb      # DL vs ML comparison
+│   │   │   ├── Pat_aki_prediction.ipynb      # Original AKI prediction
+│   │   │   ├── Pat_aki_pred_hyper.ipynb      # Hyperparameter tuning
+│   │   │   ├── Pat_dataset_analysis.ipynb    # Dataset analysis
+│   │   │   ├── Pat_data_vis.ipynb            # Data visualization
+│   │   │   ├── Pat_example_train.ipynb       # Training example
+│   │   │   └── Pat_example_eval.ipynb        # Evaluation example
+│   │   ├── Win_*.ipynb           # Window-level experiments
+│   │   │   └── Win_windowaki_examine.ipynb   # Temporal data exploration
+│   │   └── Com_*.ipynb           # Combined experiments
+│   │       └── Com_temporal_features_aki.ipynb  # Temporal feature extraction & comparison
 │   ├── dashboard/                 # Medical Dashboard (Dash)
 │   │   ├── app.py                # Main dashboard application
 │   │   ├── components/           # Dashboard components
@@ -59,6 +65,7 @@ Vital_sign_Dataset/
 │   │   └── *_outline*.md
 │   ├── examples/                  # Python script examples
 │   ├── shap_plots/                # SHAP visualization outputs
+│   ├── Notes.md                   # Research notes and findings
 │   └── README.md                  # AKI project documentation
 │
 ├── arrdb/                         # Project 2: Arrhythmia Classification
@@ -235,6 +242,26 @@ Vital_sign_Dataset/
   - Bibliography with 10 references
 - LaTeX project now fully functional locally
 - Can edit `.tex` files and view compiled PDF side-by-side in VS Code
+
+### 2024-11-01 - Session: Temporal Features Analysis & Documentation
+- **Created comprehensive research notes**: `aki/Notes.md`
+  - Complete research overview and methodology
+  - Experimental results: Tabular vs Temporal vs Combined features
+  - Key findings: Temporal features improve ROC-AUC by 3.9-15% when combined
+  - AXKI framework documentation
+  - Clinical implications and future directions
+- **Renamed notebooks with granularity prefixes**:
+  - `Pat_*`: Patient-level experiments (7 notebooks)
+  - `Win_*`: Window-level experiments (1 notebook)
+  - `Com_*`: Combined experiments (1 notebook)
+- **Temporal features experiment results**:
+  - Best model: XGBoost on Combined Features (ROC-AUC: 0.7873)
+  - Combined features: 173 features (43 tabular + 130 temporal)
+  - Signal coverage: PLETH_HR (99.9%), PLETH_SPO2 (100%), ART_MBP (70.6%)
+  - Key finding: Temporal features alone insufficient, but beneficial when combined
+- **Updated documentation**:
+  - README.md: Added Notes.md reference, updated notebook structure
+  - backup-context.md: Updated project structure and recent findings
 
 ### 2024-12-19 - Session 1: Created Data Visualization Notebook
 - Created `notebooks/data_vis.ipynb` with comprehensive VitalDB dataset visualizations

@@ -40,9 +40,9 @@ aki/
 │   ├── visualization.py   # Plotting and visualization
 │   └── shap_explainer.py  # SHAP-based interpretability
 ├── notebooks/             # Jupyter notebooks
-│   ├── data_vis.ipynb     # Data visualization with vital signs
-│   ├── example_train.ipynb # Training examples
-│   └── example_eval.ipynb  # Evaluation examples
+│   ├── Pat_*.ipynb       # Patient-level experiments
+│   ├── Win_*.ipynb       # Window-level experiments
+│   └── Com_*.ipynb       # Combined (patient + window) experiments
 ├── dashboard/             # Interactive medical dashboard
 │   ├── app.py            # Main dashboard application
 │   ├── components/       # UI components
@@ -51,6 +51,7 @@ aki/
 │   ├── main.tex         # Main document
 │   └── sections/        # Paper sections
 ├── shap_plots/          # SHAP visualization outputs
+├── Notes.md             # Research notes and findings
 └── README.md            # Detailed AKI project documentation
 ```
 
@@ -81,11 +82,13 @@ python app.py
 ```
 
 ### Key Results
-- **Best Model**: XGBoost (ROC-AUC: 0.8244, AUPRC: 0.4744, F1-Score: 0.4706)
-- **Model Performance**: All models trained and evaluated with comprehensive metrics
+- **Best Model (Combined Features)**: XGBoost (ROC-AUC: 0.7873, PR-AUC: 0.2282)
+- **Temporal Features Impact**: Combined features improve ROC-AUC by 3.9-15% vs tabular-only
+- **Model Performance**: Patient-level models evaluated; temporal features enhance baseline
 - **SHAP Interpretability**: Feature importance analysis for all models
 
 ### Documentation
+- **Research Notes**: `aki/Notes.md` - Complete research summary, findings, and methodology
 - See `aki/README.md` for detailed project documentation
 - Research paper: `aki/paper/main.tex` (compiled PDF available)
 
