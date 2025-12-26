@@ -1,0 +1,6 @@
+model,fold,roc_auc,pr_auc,trained,best_epoch,ckpt_path
+bilstm,1,0.7116090712742981,0.12402052027798494,False,2,artifacts\demo_5signals\models\bilstm\fold1.pt
+bilstm,2,0.642548596112311,0.16495220602838148,False,1,artifacts\demo_5signals\models\bilstm\fold2.pt
+bilstm,3,0.5455576169861884,0.14067515952498658,False,8,artifacts\demo_5signals\models\bilstm\fold3.pt
+bilstm,4,0.5471861471861472,0.05488781685883405,False,3,artifacts\demo_5signals\models\bilstm\fold4.pt
+bilstm,5,0.5729437229437229,0.05308839070228608,False,2,artifacts\demo_5signals\models\bilstm\fold5.pt
