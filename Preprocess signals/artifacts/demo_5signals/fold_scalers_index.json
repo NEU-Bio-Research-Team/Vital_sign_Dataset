@@ -1,0 +1,22 @@
+[
+  {
+    "fold": 1,
+    "path": "artifacts\\demo_5signals\\scalers\\scalers_fold1.json"
+  },
+  {
+    "fold": 2,
+    "path": "artifacts\\demo_5signals\\scalers\\scalers_fold2.json"
+  },
+  {
+    "fold": 3,
+    "path": "artifacts\\demo_5signals\\scalers\\scalers_fold3.json"
+  },
+  {
+    "fold": 4,
+    "path": "artifacts\\demo_5signals\\scalers\\scalers_fold4.json"
+  },
+  {
+    "fold": 5,
+    "path": "artifacts\\demo_5signals\\scalers\\scalers_fold5.json"
+  }
+]

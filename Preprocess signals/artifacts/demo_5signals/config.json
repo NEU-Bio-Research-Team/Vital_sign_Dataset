@@ -1,0 +1,34 @@
+{
+  "signals": [
+    "ART_MBP",
+    "CVP",
+    "NEPI_RATE",
+    "PLETH_HR",
+    "PLETH_SPO2"
+  ],
+  "required_signals": [
+    "ART_MBP",
+    "PLETH_HR",
+    "PLETH_SPO2"
+  ],
+  "include_optional_signals": true,
+  "fs_hz": 1.0,
+  "max_len_sec": 14400,
+  "min_len_sec": 600,
+  "min_obs_points_per_channel": 60,
+  "cutoff_mode": "early_intraop",
+  "t_cut_sec": 3600,
+  "preop_window_sec": 3600,
+  "baseline_window_sec": 2592000,
+  "postop_window_sec": 604800,
+  "n_splits": 5,
+  "random_state": 42,
+  "max_cases_to_cache": null,
+  "n_threads": 4,
+  "api_base": "https://api.vitaldb.net",
+  "artifacts_dir": "artifacts/demo_5signals",
+  "cache_dir": "artifacts/demo_5signals/cache_npz",
+  "tables_dir": "artifacts/demo_5signals/tables",
+  "scalers_dir": "artifacts/demo_5signals/scalers",
+  "plots_dir": "artifacts/demo_5signals/plots"
+}
