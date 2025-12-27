@@ -1,0 +1,13 @@
+# Core dependencies for VitalDB AKI prediction
+# NOTE: PyTorch (torch, torchvision, torchaudio) should be installed separately
+# with CUDA support. See README.md for installation instructions.
+
+numpy>=1.21.0
+pandas>=1.3.0
+scikit-learn>=1.0.0
+matplotlib>=3.4.0
+tqdm>=4.62.0
+pyyaml>=5.4.0
+requests>=2.26.0
+urllib3>=1.26.0
+

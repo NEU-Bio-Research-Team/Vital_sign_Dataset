@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Conda
+.conda/
+conda-meta/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Artifacts (keep structure, ignore generated data)
+artifacts/**/*.npz
+artifacts/**/*.csv
+artifacts/**/*.json
+artifacts/**/*.pt
+artifacts/**/*.png
+artifacts/**/models/
+artifacts/**/cache_npz/
+artifacts/**/tables/
+artifacts/**/scalers/
+!artifacts/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.tmp
+*.temp
+
