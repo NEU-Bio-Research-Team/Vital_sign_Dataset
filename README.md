@@ -1,352 +1,474 @@
-# Vital Sign Dataset Projects
+# VitalDB AKI Prediction
 
-This repository contains multiple medical AI research projects based on the VitalDB dataset, focusing on predictive healthcare analytics using machine learning and deep learning approaches.
+A machine learning pipeline for predicting Acute Kidney Injury (AKI) from intraoperative vital signs using data from VitalDB.
 
----
+## Overview
 
-## 📋 Projects Overview
-
-This repository hosts two independent research projects:
-
-1. **AKI Prediction** (`aki/`) - Acute Kidney Injury prediction from vital signs
-2. **Arrhythmia Classification** (`arrdb/`) - Cardiac arrhythmia detection from ECG signals
-
-Both projects are self-contained with their own data, source code, notebooks, and documentation.
-
----
-
-## 🔬 Project 1: AKI Prediction
-
-### Overview
-Predict postoperative Acute Kidney Injury (AKI) using vital signs and clinical data from VitalDB surgical patients.
+This project implements a deep learning pipeline to predict AKI occurrence after surgery using the first 60 minutes of intraoperative vital signs. AKI is defined as postoperative creatinine ≥ 1.5× baseline creatinine.
 
 ### Key Features
-- **Task**: Binary classification (AKI vs No-AKI)
-- **Dataset**: 3,989 surgical patients, 43 features, 5.26% positive class (highly imbalanced)
-- **Models**: Logistic Regression, Random Forest, XGBoost, SVM
-- **Special Features**:
-  - SHAP-based model interpretability
-  - Interactive medical dashboard (Dash/Plotly)
-  - Comprehensive evaluation metrics
-  - Hyperparameter tuning framework
 
-### Project Structure
-```
-aki/
-├── src/                    # Source code package
-│   ├── utils.py           # Data loading and preprocessing
-│   ├── train.py           # Model training and hyperparameter tuning
-│   ├── evaluate.py        # Model evaluation and metrics
-│   ├── visualization.py   # Plotting and visualization
-│   └── shap_explainer.py  # SHAP-based interpretability
-├── notebooks/             # Jupyter notebooks
-│   ├── Pat_*.ipynb       # Patient-level experiments
-│   ├── Win_*.ipynb       # Window-level experiments
-│   └── Com_*.ipynb       # Combined (patient + window) experiments
-├── dashboard/             # Interactive medical dashboard
-│   ├── app.py            # Main dashboard application
-│   ├── components/       # UI components
-│   └── utils/            # Dashboard utilities
-├── paper/                # LaTeX research paper
-│   ├── main.tex         # Main document
-│   └── sections/        # Paper sections
-├── shap_plots/          # SHAP visualization outputs
-├── Notes.md             # Research notes and findings
-└── README.md            # Detailed AKI project documentation
-```
+- **5 Vital Signs**: ART_MBP, CVP, NEPI_RATE, PLETH_HR, PLETH_SPO2
+- **4 Model Architectures**: TCN, GRU, LSTM, BiLSTM
+- **5-Fold Cross-Validation**: Stratified splits with reproducible results
+- **Missingness-Aware Processing**: Explicit mask channels for missing data
+- **Anti-Leakage Design**: Feature window cutoff to prevent label leakage
+- **Automatic Checkpointing**: Skip completed steps on re-runs
 
-### Getting Started
+## Installation
 
-**1. Install Dependencies:**
-```bash
-cd aki
-pip install -r requirements.txt  # Check if exists, otherwise use root requirements.txt
-```
+### Prerequisites
 
-**2. Run Data Visualization:**
-```bash
-jupyter notebook notebooks/data_vis.ipynb
-```
+- Python 3.9+
+- CUDA-capable GPU (recommended) or CPU
+- Conda (recommended) or pip
 
-**3. Train Models:**
-```bash
-jupyter notebook notebooks/example_train.ipynb
-```
-
-**4. Launch Interactive Dashboard:**
-```bash
-cd dashboard
-pip install -r requirements_dashboard.txt
-python app.py
-# Access at: http://localhost:8050
-```
-
-### Key Results
-- **Best Model (Combined Features)**: XGBoost (ROC-AUC: 0.7873, PR-AUC: 0.2282)
-- **Temporal Features Impact**: Combined features improve ROC-AUC by 3.9-15% vs tabular-only
-- **Model Performance**: Patient-level models evaluated; temporal features enhance baseline
-- **SHAP Interpretability**: Feature importance analysis for all models
-
-### Documentation
-- **Research Notes**: `aki/Notes.md` - Complete research summary, findings, and methodology
-- See `aki/README.md` for detailed project documentation
-- Research paper: `aki/paper/main.tex` (compiled PDF available)
-
----
-
-## ❤️ Project 2: Arrhythmia Classification (ARRDB)
-
-### Overview
-Multi-level arrhythmia classification from ECG signals using both deep learning and traditional machine learning approaches.
-
-### Key Features
-- **Tasks**:
-  - **Beat-level Classification**: 4 classes (N=Normal, S=Supraventricular, V=Ventricular, U=Unknown)
-  - **Rhythm-level Classification**: Multiple rhythm types (AFIB/AFL, SR, etc.)
-- **Dataset**: 482 patients, 60-beat window sequences, window-level evaluation
-- **Models**:
-  - **Deep Learning**: 1D-CNN, LSTM (PyTorch)
-  - **Traditional ML**: XGBoost, Random Forest, Logistic Regression
-- **Special Features**:
-  - Window-level feature extraction (HRV features for ML, raw RR sequences for DL)
-  - Patient-level data splits for fair comparison
-  - Comprehensive evaluation metrics (9 metrics per model)
-  - Model comparison and visualization framework
-
-### Project Structure
-```
-arrdb/
-├── src/                           # Source code package
-│   ├── data_loader.py            # Load VitalDB annotation files
-│   ├── feature_extractor.py      # HRV feature extraction
-│   ├── preprocess.py             # Data preprocessing and windowing
-│   ├── models.py                 # PyTorch DL model architectures
-│   ├── train_models.py           # Training functions
-│   ├── train_models_simple.py    # Simplified ML training (no PyTorch)
-│   └── evaluate_models.py        # Evaluation and metrics
-├── notebooks/                     # Jupyter notebooks
-│   ├── beat_dl.ipynb             # CNN for beat classification
-│   ├── beat_lstm.ipynb           # LSTM for beat classification
-│   ├── rhythm_dl.ipynb           # CNN for rhythm classification
-│   ├── rhythm_lstm.ipynb         # LSTM for rhythm classification
-│   ├── trad_ml.ipynb             # Traditional ML for both tasks
-│   ├── classification_visualization.ipynb  # DL visualization
-│   ├── ml_visualization.ipynb    # ML visualization
-│   └── general_evaluation.ipynb  # Comprehensive model comparison
-├── experiments/
-│   └── results/
-│       ├── predictions/          # Saved model predictions
-│       ├── metrics/              # Performance metrics (CSV)
-│       └── plots/                # Visualization figures
-├── LabelFile/                    # ECG annotations and metadata
-├── EXP_GUIDE.md                  # Step-by-step execution guide
-├── Notes.md                      # Research notes and paper draft
-└── requirements_arrdb.txt        # Project-specific dependencies
-```
-
-### Getting Started
-
-**1. Install Dependencies:**
-```bash
-cd arrdb
-pip install -r requirements_arrdb.txt
-```
-
-**2. Follow Execution Guide:**
-```bash
-# Read the experiment guide first
-cat EXP_GUIDE.md
-```
-
-**3. Run Experiments (Sequential Order):**
-
-**Phase 1: Model Training**
-```bash
-jupyter notebook notebooks/beat_dl.ipynb          # Train CNN for beats
-jupyter notebook notebooks/beat_lstm.ipynb        # Train LSTM for beats
-jupyter notebook notebooks/rhythm_dl.ipynb        # Train CNN for rhythm
-jupyter notebook notebooks/rhythm_lstm.ipynb      # Train LSTM for rhythm
-jupyter notebook notebooks/trad_ml.ipynb          # Train ML models
-```
-
-**Phase 2: Visualization (Optional)**
-```bash
-jupyter notebook notebooks/classification_visualization.ipynb  # DL viz
-jupyter notebook notebooks/ml_visualization.ipynb              # ML viz
-```
-
-**Phase 3: Comprehensive Evaluation**
-```bash
-jupyter notebook notebooks/general_evaluation.ipynb  # Compare all models
-```
-
-### Key Results
-- **Beat Classification Best**: CNN (Accuracy: 88.21%, F1-Macro: 51.95%)
-- **Rhythm Classification Best**: CNN (Accuracy: 70.82%, F1-Macro: 50.04%)
-- **Window-Level Evaluation**: All models evaluated at same granularity (60-beat windows)
-- **Fair Comparison**: Identical patient splits (60/20/20) and window parameters
-
-### Documentation
-- **Execution Guide**: `arrdb/EXP_GUIDE.md` - Step-by-step notebook execution order
-- **Research Notes**: `arrdb/Notes.md` - Complete research summary and paper draft
-- **Results**: `arrdb/experiments/results/metrics/overall_performance_comparison.csv`
-
----
-
-## 🗂️ Repository Structure
-
-```
-Vital_sign_Dataset/
-├── aki/                    # Project 1: AKI Prediction
-│   ├── src/               # Source code
-│   ├── notebooks/         # Analysis notebooks
-│   ├── dashboard/         # Interactive dashboard
-│   ├── paper/             # Research paper
-│   └── shap_plots/        # SHAP visualizations
-│
-├── arrdb/                 # Project 2: Arrhythmia Classification
-│   ├── src/               # Source code
-│   ├── notebooks/         # Experiment notebooks
-│   ├── experiments/       # Results and outputs
-│   ├── LabelFile/         # ECG data and annotations
-│   ├── EXP_GUIDE.md       # Execution guide
-│   └── Notes.md           # Research notes
-│
-├── requirements.txt       # Common Python dependencies
-├── backup-context.md      # Project context backup
-└── README.md             # This file
-```
-
----
-
-## 📦 Common Dependencies
-
-Both projects share core dependencies (see `requirements.txt`):
+### Option 1: Conda Environment (Recommended)
 
 ```bash
+# Create minimal conda environment (fast - only Python)
+conda env create -f environment.yml
+
+# Activate environment
+conda activate vitaldb_aki
+
+# Install PyTorch with CUDA support (choose appropriate CUDA version)
+# For CUDA 11.8:
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# For CUDA 12.1:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# For CPU-only (no GPU):
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+# Install all other dependencies from requirements.txt
 pip install -r requirements.txt
+
+# Verify CUDA is available (optional)
+python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
+
+# Install package in development mode
+pip install -e .
 ```
 
-**Core Libraries:**
-- pandas, numpy
-- scikit-learn
-- matplotlib, seaborn
-- jupyter, ipykernel
-- joblib
+**Note**: 
+- The conda environment only contains Python, making it fast to create
+- All dependencies are installed via pip for simplicity
+- If you don't have a CUDA-capable GPU or prefer CPU-only, use the CPU-only PyTorch installation command above
 
-**Project-Specific:**
-- **AKI**: XGBoost, SHAP, plotly, dash
-- **ARRDB**: PyTorch, XGBoost
+### Option 2: Pip Installation (Virtual Environment)
 
----
-
-## 🔬 Dataset Sources
-
-Both projects use data from **VitalDB**:
-
-### AKI Dataset
-- **Source**: VitalDB surgical patient database
-- **Type**: Clinical vital signs and laboratory values
-- **Focus**: Postoperative AKI prediction
-- **Access**: Requires VitalDB API access
-
-### Arrhythmia Database
-- **Source**: VitalDB Arrhythmia Database
-- **Type**: ECG waveforms with R-peak annotations
-- **Focus**: Beat-level and rhythm-level classification
-- **Files**: Located in `arrdb/LabelFile/` (482 patient annotation files)
-
----
-
-## 📊 Key Differences Between Projects
-
-| Aspect | AKI Prediction | Arrhythmia Classification |
-|--------|---------------|--------------------------|
-| **Task Type** | Binary classification | Multi-class classification (2 tasks) |
-| **Input Data** | Tabular vital signs | Time-series ECG signals (RR intervals) |
-| **Models** | Traditional ML only | DL + Traditional ML |
-| **Granularity** | Patient-level | Window-level (60-beat windows) |
-| **Special Features** | SHAP, Dashboard | Window-level comparison, HRV features |
-| **Evaluation** | Patient-level metrics | Window-level metrics |
-
----
-
-## 🚀 Quick Start Examples
-
-### AKI Prediction
 ```bash
-# 1. Navigate to project
-cd aki
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# 2. Run data visualization
-jupyter notebook notebooks/data_vis.ipynb
+# Install PyTorch with CUDA support (choose appropriate CUDA version)
+# For CUDA 11.8:
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
-# 3. Train models
-jupyter notebook notebooks/example_train.ipynb
+# For CUDA 12.1:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
-# 4. Launch dashboard
-cd dashboard && python app.py
+# For CPU-only (no GPU):
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+# Install all other dependencies from requirements.txt
+pip install -r requirements.txt
+
+# Verify CUDA is available (optional)
+python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
+
+# Install package in development mode
+pip install -e .
 ```
 
-### Arrhythmia Classification
+**Note**: Visit [PyTorch Installation Guide](https://pytorch.org/get-started/locally/) for the latest installation commands based on your system configuration.
+
+## Quick Start
+
+### 1. Preprocess Data
+
 ```bash
-# 1. Navigate to project
-cd arrdb
+# Using default configuration
+python scripts/preprocess.py --experiment-name demo_5signals
 
-# 2. Read execution guide
-cat EXP_GUIDE.md
+# Using custom configuration
+python scripts/preprocess.py --config configs/my_config.yaml --experiment-name my_experiment
 
-# 3. Train models (start with beat classification)
-jupyter notebook notebooks/beat_dl.ipynb
-
-# 4. Compare all models
-jupyter notebook notebooks/general_evaluation.ipynb
+# Force reprocessing (ignore existing artifacts)
+python scripts/preprocess.py --experiment-name demo_5signals --force
 ```
 
----
+### 2. Train Models
 
-## 📚 Documentation
+```bash
+# Train all models
+python scripts/train.py --experiment-name demo_5signals
 
-### AKI Project
-- **Main README**: `aki/README.md`
-- **Dashboard Guide**: `aki/dashboard/README.md`
-- **Paper**: `aki/paper/main.tex`
+# Train specific model
+python scripts/train.py --experiment-name demo_5signals --model tcn
 
-### ARRDB Project
-- **Execution Guide**: `arrdb/EXP_GUIDE.md` (sequential notebook execution)
-- **Research Notes**: `arrdb/Notes.md` (complete research summary)
-- **Results**: `arrdb/experiments/results/` (metrics and visualizations)
+# Force retraining (ignore existing checkpoints)
+python scripts/train.py --experiment-name demo_5signals --force
+```
 
----
+### 3. Evaluate Models
 
-## 🔮 Future Work
+```bash
+# Evaluate best model (auto-selected by PR-AUC)
+python scripts/evaluate.py --experiment-name demo_5signals
 
-### Individual Projects
-- **AKI**: Real-time monitoring integration, model versioning
-- **ARRDB**: Ensemble methods, attention mechanisms, transfer learning
+# Evaluate specific model
+python scripts/evaluate.py --experiment-name demo_5signals --model tcn
 
-### Cross-Project
-- Multi-task learning combining AKI and Arrhythmia predictions
-- LLM-powered clinical decision support
-- Integration with hospital EHR systems
-- Real-time monitoring systems
+# Save plots to files
+python scripts/evaluate.py --experiment-name demo_5signals --save-plots
+```
 
----
+## Project Structure
 
-## 📄 License
+```
+vitaldb_aki/
+├── src/
+│   └── vitaldb_aki/
+│       ├── config.py              # Configuration management
+│       ├── data/
+│       │   ├── loaders.py         # Data loading utilities
+│       │   └── preprocessing.py   # Preprocessing pipeline
+│       ├── models/
+│       │   └── architectures.py  # Model definitions
+│       ├── training/
+│       │   ├── dataset.py          # PyTorch Dataset classes
+│       │   └── trainer.py          # Training logic
+│       ├── evaluation/
+│       │   ├── metrics.py         # Evaluation metrics
+│       │   └── visualizations.py  # Plotting functions
+│       └── utils/
+│           ├── helpers.py         # Utility functions
+│           └── paths.py            # Path management
+├── scripts/
+│   ├── preprocess.py               # Preprocessing entry point
+│   ├── train.py                    # Training entry point
+│   └── evaluate.py                 # Evaluation entry point
+├── configs/
+│   └── default.yaml                # Default configuration
+├── artifacts/                       # Output directory
+│   └── {experiment_name}/
+│       ├── models/                 # Trained model checkpoints
+│       ├── results/                # Metrics and plots
+│       ├── data/                   # Preprocessed data
+│       └── scalers/                # Normalization scalers
+├── requirements.txt
+├── environment.yml
+├── setup.py
+└── README.md
+```
 
-See individual project READMEs for license information.
+## Configuration
 
----
+Configuration is managed via YAML files. See `configs/default.yaml` for all available options.
 
-## 👥 Contributing
+### Key Configuration Parameters
 
-Each project is independently maintained. Please refer to project-specific documentation for contribution guidelines.
+- **Signals**: Which vital signs to use
+- **Cutoff Mode**: `early_intraop` (use first 60 min) or `preop` (use pre-op only)
+- **Training**: Epochs, batch size, learning rate, etc.
+- **Model Architecture**: Hidden dimensions, layers, dropout
 
----
+### Creating Custom Configurations
 
-## 📧 Contact
+1. Copy `configs/default.yaml` to `configs/my_experiment.yaml`
+2. Modify parameters as needed
+3. Use `--config configs/my_experiment.yaml` when running scripts
 
-For questions about specific projects:
-- **AKI Prediction**: See `aki/README.md`
-- **Arrhythmia Classification**: See `arrdb/Notes.md` or `arrdb/EXP_GUIDE.md`
+## Data Pipeline
+
+### Step 1: Label Building
+- Extract baseline creatinine from [-30 days, 0]
+- Extract postop max creatinine from [0, +7 days]
+- Define AKI = 1 if postop_max_cr ≥ 1.5 × baseline_cr
+
+### Step 2: Manifest Building
+- Map case IDs to track IDs for each signal
+- Use regex patterns to match signal names
+- Filter to cases with all required signals
+
+### Step 3: Track Ingestion
+- Load irregular time series from VitalDB API
+- Resample to uniform 1 Hz grid
+- Create mask channels for missingness
+- Apply signal-specific transforms (clipping, log1p)
+- Enforce quality gates (min length, min observations)
+
+### Step 4: Fold Creation
+- Stratified 5-fold CV at case level
+- Preserve class distribution across folds
+
+### Step 5: Normalization
+- Fit scalers on training fold only (prevent leakage)
+- Use robust scaling for NEPI_RATE, z-score for others
+- Apply only to observed values (mask-aware)
+
+## Model Training
+
+### Available Models
+
+- **TCN**: Temporal Convolutional Network
+- **GRU**: Bidirectional Gated Recurrent Unit
+- **LSTM**: Long Short-Term Memory
+- **BiLSTM**: Bidirectional LSTM
+
+### Training Process
+
+1. Models are trained with 5-fold cross-validation
+2. Early stopping based on validation PR-AUC (default) or ROC-AUC
+3. Checkpoints saved per fold for reproducibility
+4. Metrics saved to CSV files
+
+### Results
+
+Results are saved in `artifacts/{experiment_name}/results/`:
+- `{model}_5fold_metrics.csv`: Per-fold metrics
+- `all_models_5fold_summary.csv`: Summary across all models
+- `{model}_roc.png`, `{model}_pr.png`, `{model}_cm.png`: Visualization plots
+
+## Extending the Codebase
+
+### Adding New Model Architectures
+
+To add a new model architecture, you need to modify the following files:
+
+#### 1. `src/vitaldb_aki/models/architectures.py` (Required)
+
+Add your model class and register it in the `build_model()` factory function:
+
+```python
+# Add your new model class
+class YourNewModel(nn.Module):
+    """Your model description."""
+    
+    def __init__(self, input_dim: int, hidden_dim: int = 64, **kwargs):
+        super().__init__()
+        # Your model definition
+        # ...
+    
+    def forward(self, x: torch.Tensor, lengths: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass.
+        
+        Args:
+            x: Input tensor [B, T, F] where B=batch, T=time, F=features
+            lengths: Sequence lengths [B]
+        
+        Returns:
+            Logits [B, 1]
+        """
+        # Your forward logic
+        # Must return logits (not probabilities)
+        return logits
+
+# Update build_model() function
+def build_model(model_name: str, input_dim: int, **kwargs) -> nn.Module:
+    model_name = model_name.lower().strip()
+    
+    if model_name == "tcn":
+        # ... existing code ...
+    elif model_name == "your_model":  # Add your new model
+        return YourNewModel(input_dim, **kwargs)
+    # ... other models ...
+    else:
+        raise ValueError(f"Unknown model_name={model_name}. Use one of: ...")
+```
+
+**Important**: Your model must:
+- Accept `(x: torch.Tensor, lengths: torch.Tensor)` in `forward()`
+- Input shape: `[batch_size, T, input_dim]` where `input_dim = 2 × n_signals`
+- Output shape: `[batch_size, 1]` (logits, not probabilities)
+
+#### 2. `src/vitaldb_aki/models/__init__.py` (Optional but recommended)
+
+Export your new model:
+
+```python
+from .architectures import (
+    # ... existing imports ...
+    YourNewModel,  # Add your new model
+    build_model,
+)
+
+__all__ = [
+    # ... existing exports ...
+    "YourNewModel",  # Add your new model
+    "build_model",
+]
+```
+
+#### 3. `scripts/train.py` (Required)
+
+Add the model name to the list of trainable models:
+
+```python
+# Line 64
+models_to_train = ["tcn", "gru", "lstm", "bilstm", "your_model"]  # Add your model
+```
+
+### Adding New Training Methods
+
+To add custom training methods (e.g., custom loss functions, optimizers, learning rate schedules, data augmentation), modify:
+
+#### 1. `src/vitaldb_aki/training/trainer.py` (Main file)
+
+Modify the `train_or_load_one_fold()` function, specifically the training loop (around lines 164-225):
+
+```python
+def train_or_load_one_fold(...):
+    # ... existing setup code ...
+    
+    # Training loop
+    for ep in range(1, int(config.epochs) + 1):
+        model.train()
+        
+        # ===== ADD YOUR CUSTOM TRAINING LOGIC HERE =====
+        # Examples:
+        # - Custom loss function
+        # - Different optimizer (Adam, SGD, etc.)
+        # - Learning rate scheduling
+        # - Gradient accumulation
+        # - Mixup/CutMix augmentation
+        # - Regularization techniques
+        
+        for Xb, yb, lengths in train_loader:
+            optimizer.zero_grad(set_to_none=True)
+            
+            # Your custom training logic
+            logits = model(Xb.to(device), lengths.to(device))
+            loss = criterion(logits, yb.to(device))
+            
+            # Add custom components
+            # loss = loss + custom_regularization_term(...)
+            
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
+            optimizer.step()
+        
+        # Custom evaluation or logging
+        # ...
+```
+
+#### 2. `src/vitaldb_aki/config.py` (If you need new config parameters)
+
+Add new configuration fields to the `Config` dataclass:
+
+```python
+@dataclass(frozen=True)
+class Config:
+    # ... existing fields ...
+    
+    # Add your new training parameters
+    use_mixup: bool = False
+    mixup_alpha: float = 0.2
+    gradient_accumulation_steps: int = 1
+    learning_rate_schedule: str = "constant"  # "constant", "cosine", "step"
+    # ... etc ...
+```
+
+#### 3. `configs/default.yaml` (If you added config fields)
+
+Add default values for your new parameters:
+
+```yaml
+# ... existing config ...
+
+# New training parameters
+use_mixup: false
+mixup_alpha: 0.2
+gradient_accumulation_steps: 1
+learning_rate_schedule: "constant"
+```
+
+### Quick Reference Table
+
+| Task | Files to Edit | What to Change |
+|------|---------------|----------------|
+| **Add New Model** | `src/vitaldb_aki/models/architectures.py` | Add model class + register in `build_model()` |
+| | `src/vitaldb_aki/models/__init__.py` | Export new model (optional) |
+| | `scripts/train.py` | Add model name to `models_to_train` list |
+| **Add Training Method** | `src/vitaldb_aki/training/trainer.py` | Modify training loop in `train_or_load_one_fold()` |
+| | `src/vitaldb_aki/config.py` | Add new config parameters (if needed) |
+| | `configs/default.yaml` | Add default values (if needed) |
+| **Add Custom Loss** | `src/vitaldb_aki/training/trainer.py` | Modify loss computation in training loop |
+| **Add Custom Optimizer** | `src/vitaldb_aki/training/trainer.py` | Change optimizer initialization |
+| **Add LR Schedule** | `src/vitaldb_aki/training/trainer.py` | Add scheduler after optimizer creation |
+| **Add Data Augmentation** | `src/vitaldb_aki/training/dataset.py` | Modify `DemoFoldDataset.__getitem__()` |
+
+### Notes
+
+- **Model Interface**: All models must follow the same interface (input/output shapes) for compatibility with the training and evaluation pipelines.
+- **Checkpoint Compatibility**: If you change model architectures significantly, the code includes a `strict=False` fallback for loading old checkpoints, but you may need to handle migration.
+- **Configuration**: Adding hyperparameters to `Config` and `default.yaml` ensures reproducibility and easy experimentation.
+- **Evaluation**: Changes to model architectures automatically work with the evaluation pipeline since it uses the same model interface.
+
+## Evaluation
+
+The evaluation script generates:
+- **ROC Curves**: One curve per fold
+- **PR Curves**: One curve per fold with prevalence baseline
+- **Confusion Matrix**: Out-of-fold predictions at specified threshold
+
+## Reproducibility
+
+- Random seeds fixed in configuration
+- Config files saved with artifacts
+- Checkpoint system allows resuming/reproducing results
+- All preprocessing steps are deterministic
+
+## Skip Logic
+
+The pipeline automatically detects and skips completed steps:
+
+- **Preprocessing**: Checks for existing labels, manifest, cached tensors, folds, scalers
+- **Training**: Checks for existing model checkpoints
+- **Evaluation**: Can regenerate plots on demand
+
+Use `--force` flag to override and reprocess.
+
+## Troubleshooting
+
+### CUDA Out of Memory
+
+Reduce batch size in config:
+```yaml
+batch_size: 16  # Instead of 32
+```
+
+### Missing Data
+
+Check `artifacts/{experiment_name}/df_failed.csv` for cases that failed quality gates.
+
+### API Rate Limiting
+
+The code includes automatic retry logic. If issues persist, reduce `n_threads` in config.
+
+## Citation
+
+If you use this code, please cite:
+
+```bibtex
+@software{vitaldb_aki,
+  title = {VitalDB AKI Prediction},
+  author = {VitalDB AKI Team},
+  year = {2024},
+  url = {https://github.com/yourusername/vitaldb_aki}
+}
+```
+
+## License
+
+[Specify your license here]
+
+## Contact
+
+[Add contact information]
+

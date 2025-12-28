@@ -1,0 +1,67 @@
+# Default configuration for VitalDB AKI prediction
+
+# Signals configuration
+signals:
+  - ART_MBP
+  - CVP
+  - NEPI_RATE
+  - PLETH_HR
+  - PLETH_SPO2
+
+required_signals:
+  - ART_MBP
+  - PLETH_HR
+  - PLETH_SPO2
+
+include_optional_signals: true
+
+# Resampling configuration
+fs_hz: 1.0
+max_len_sec: 14400  # 4 hours
+min_len_sec: 600    # 10 minutes
+min_obs_points_per_channel: 60
+
+# Feature time window / cutoff (anti-leakage)
+cutoff_mode: early_intraop  # "early_intraop" or "preop"
+t_cut_sec: 3600            # 60 minutes for early_intraop
+preop_window_sec: 3600     # only used if cutoff_mode="preop"
+
+# AKI label windows (seconds)
+baseline_window_sec: 2592000   # 30 days
+postop_window_sec: 604800     # 7 days
+
+# Cross-validation / splits
+n_splits: 5
+random_state: 42
+
+# Performance settings
+max_cases_to_cache: null  # null = all cases
+n_threads: 4
+
+# IO paths (will be updated with experiment_name)
+api_base: "https://api.vitaldb.net"
+artifacts_dir: "artifacts/demo_5signals"
+cache_dir: "artifacts/demo_5signals/cache_npz"
+tables_dir: "artifacts/demo_5signals/tables"
+scalers_dir: "artifacts/demo_5signals/scalers"
+plots_dir: "artifacts/demo_5signals/plots"
+
+# Training hyperparameters
+epochs: 20
+batch_size: 32
+lr: 0.001
+weight_decay: 0.0001
+patience: 5
+monitor: pr_auc  # "pr_auc" or "roc_auc"
+device: cuda     # "cuda" or "cpu"
+
+# Model architecture
+model_hidden_dim: 64
+model_num_layers: 2
+model_dropout: 0.2
+
+# Model architecture (attention/transformer specific)
+model_num_heads: 4
+model_use_multiscale: true
+model_max_len: 3600
+
