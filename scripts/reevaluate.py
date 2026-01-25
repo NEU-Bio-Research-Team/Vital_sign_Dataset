@@ -16,6 +16,16 @@ from vitaldb_aki.training.trainer import train_all_folds
 from vitaldb_aki.utils.paths import get_paths
 
 
+MODEL_DISPLAY_NAMES = {
+    "temporal_synergy": "SynerT",
+}
+
+
+def _display_model_name(name: str) -> str:
+    key = (name or "").lower().strip()
+    return MODEL_DISPLAY_NAMES.get(key, name)
+
+
 def main():
     """Re-evaluate models and update metrics."""
     parser = argparse.ArgumentParser(description="Re-evaluate models from checkpoints")
@@ -28,8 +38,8 @@ def main():
     parser.add_argument(
         "--experiment-name",
         type=str,
-        default="demo_5signals",
-        help="Experiment name (default: demo_5signals)",
+        default="new_optional_exp",
+        help="Experiment name (default: new_optional_exp)",
     )
     parser.add_argument(
         "--model",
@@ -71,7 +81,7 @@ def main():
     # Re-evaluate each model
     all_results = []
     for model_name in models_to_reevaluate:
-        print(f"\n=== Re-evaluating {model_name.upper()} ===")
+        print(f"\n=== Re-evaluating {_display_model_name(model_name)} ===")
         # This will load checkpoints and re-evaluate without retraining
         df_results = train_all_folds(model_name, folds, config, force_train=False)
         all_results.append(df_results)

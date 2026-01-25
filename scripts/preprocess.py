@@ -31,8 +31,8 @@ def main():
     parser.add_argument(
         "--experiment-name",
         type=str,
-        default="demo_5signals",
-        help="Experiment name (default: demo_5signals)",
+        default="new_optional_exp",
+        help="Experiment name (default: new_optional_exp)",
     )
     parser.add_argument(
         "--force",
@@ -42,9 +42,16 @@ def main():
     args = parser.parse_args()
 
     # Load config
-    config = load_config(args.config, args.experiment_name)
+    config = load_config(
+        args.config,
+        args.experiment_name,
+        prefer_saved_config=not args.force,
+    )
     print(f"Using experiment: {args.experiment_name}")
     print(f"Artifacts directory: {config.artifacts_dir}")
+    print(f"Signals: {list(config.signals)}")
+    print(f"Required signals: {list(config.required_signals)}")
+    print(f"include_optional_signals: {config.include_optional_signals}")
 
     # Setup directories
     paths = setup_directories(config)

@@ -135,6 +135,50 @@ class AKIGRU_Logits(nn.Module):
         return self.head(pooled)
 
 
+class MLPClassifier_Logits(nn.Module):
+    """MLP baseline for AKI prediction.
+
+    This model performs masked mean pooling over time, then applies an MLP head.
+    """
+
+    def __init__(
+        self,
+        input_dim: int,
+        hidden_dim: int = 128,
+        num_layers: int = 2,
+        dropout: float = 0.3,
+    ):
+        super().__init__()
+
+        num_layers = int(num_layers)
+        layers: list[nn.Module] = []
+        in_dim = input_dim
+        for _ in range(max(0, num_layers)):
+            layers.append(nn.Linear(in_dim, hidden_dim))
+            layers.append(nn.ReLU())
+            layers.append(nn.Dropout(dropout))
+            in_dim = hidden_dim
+        layers.append(nn.Linear(in_dim, 1))
+        self.head = nn.Sequential(*layers)
+
+    def forward(self, x: torch.Tensor, lengths: torch.Tensor) -> torch.Tensor:
+        """Forward pass.
+
+        Args:
+            x: Input tensor [B, T, F].
+            lengths: Sequence lengths [B].
+
+        Returns:
+            Logits [B, 1].
+        """
+        B, T, _ = x.shape
+        t = torch.arange(T, device=x.device).unsqueeze(0).expand(B, T)
+        m = (t < lengths.unsqueeze(1)).unsqueeze(-1).float()
+        x = x * m
+        pooled = x.sum(dim=1) / lengths.clamp_min(1).unsqueeze(1).float()
+        return self.head(pooled)
+
+
 class CausalConv1d(nn.Module):
     """Causal 1D convolution."""
 
@@ -1638,6 +1682,8 @@ def build_model(model_name: str, input_dim: int, **kwargs) -> nn.Module:
         return BiLSTM_Logits(input_dim, **kwargs)
     elif model_name == "gru":
         return AKIGRU_Logits(input_dim, **kwargs)
+    elif model_name == "mlp":
+        return MLPClassifier_Logits(input_dim, **kwargs)
     elif model_name == "attention":
         # Extract attention-specific parameters
         attention_kwargs = kwargs.copy()
@@ -1755,6 +1801,6 @@ def build_model(model_name: str, input_dim: int, **kwargs) -> nn.Module:
         )
     else:
         raise ValueError(
-            f"Unknown model_name={model_name}. Use one of: lstm, bilstm, gru, tcn, attention, transformer, dilated_conv, dilated_rnn, wavenet, temporal_synergy, tcn_attention, wavenet_rnn"
+            f"Unknown model_name={model_name}. Use one of: lstm, bilstm, gru, mlp, tcn, attention, transformer, dilated_conv, dilated_rnn, wavenet, temporal_synergy, tcn_attention, wavenet_rnn"
         )
 

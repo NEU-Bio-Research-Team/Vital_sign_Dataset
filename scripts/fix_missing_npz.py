@@ -7,7 +7,7 @@ from pathlib import Path
 
 def main():
     """Remove cases without NPZ files from folds."""
-    artifacts_dir = Path("artifacts/demo_5signals")
+    artifacts_dir = Path("artifacts/new_optional_exp")
     cache_dir = artifacts_dir / "cache_npz"
     folds_path = artifacts_dir / "folds.json"
     

@@ -27,8 +27,8 @@ def main():
     parser.add_argument(
         "--experiment-name",
         type=str,
-        default="demo_5signals",
-        help="Experiment name (default: demo_5signals)",
+        default="new_optional_exp",
+        help="Experiment name (default: new_optional_exp)",
     )
     args = parser.parse_args()
 

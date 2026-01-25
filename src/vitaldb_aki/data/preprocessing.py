@@ -27,10 +27,12 @@ from ..utils.paths import get_paths, setup_directories
 # Ordered regex fallback patterns per signal
 PATTERNS: Dict[str, List[str]] = {
     "ART_MBP": [r"(^|/)ART_MBP$", r"ART_MBP", r"\bMBP\b"],
-    "CVP": [r"(^|/)CVP$", r"\bCVP\b"],
-    "NEPI_RATE": [r"(^|/)NEPI_RATE$", r"NEPI_RATE", r"NOREPI", r"NOREP"],
     "PLETH_HR": [r"(^|/)PLETH_HR$", r"PLETH_HR", r"\bHR\b"],
-    "PLETH_SPO2": [r"(^|/)PLETH_SPO2$", r"PLETH_SPO2", r"\bSPO2\b"],
+    "PLETH_SPO2": [r"(^|/)PLETH_SPO2$", r"PLETH_SPO2", r"\bSPO2\b", r"\bSP\s*O2\b"],
+    "ART_SBP": [r"(^|/)ART_SBP$", r"ART_SBP", r"\bSBP\b"],
+    "ART_DBP": [r"(^|/)ART_DBP$", r"ART_DBP", r"\bDBP\b"],
+    "HR": [r"(^|/)HR$", r"\bHR\b"],
+    "ETCO2": [r"(^|/)ETCO2$", r"ETCO2", r"\bETCO2\b", r"\bETCO_?2\b"],
 }
 
 
@@ -182,11 +184,16 @@ def build_manifest(
         raise ValueError("No tracks available after restricting to labelled cases.")
 
     # Build manifest row-by-row
-    from tqdm.auto import tqdm
+    try:
+        from tqdm.auto import tqdm  # type: ignore
+    except Exception:  # pragma: no cover
+        def tqdm(x, **kwargs):
+            return x
 
     manifest_rows = []
     for caseid, g in tqdm(trks_lab.groupby("caseid"), desc="Building manifest", unit="case"):
         row = {"caseid": int(caseid)}
+        # Track IDs are defined for configured signals.
         for sig in config.signals:
             row[f"tid_{sig}"] = pick_tid_for_signal(g, sig)
         manifest_rows.append(row)
@@ -336,14 +343,16 @@ def build_case_tensor_from_manifest_row(
         Tuple of (x tensor, valid_len, obs_counts).
     """
     T = len(grid_t)
-    sig_names = list(config.signals)
-    n_sig = len(sig_names)
-    sig_mat = np.zeros((n_sig, T), dtype=np.float32)
-    mask_mat = np.zeros((n_sig, T), dtype=np.float32)
-    obs_counts: Dict[str, int] = {name: 0 for name in sig_names}
 
+    out_names = list(config.signals)  # model-facing channels
+    n_out = len(out_names)
+    out_sig = np.zeros((n_out, T), dtype=np.float32)
+    out_mask = np.zeros((n_out, T), dtype=np.float32)
+    obs_counts: Dict[str, int] = {name: 0 for name in out_names}
+
+    idx_by_name = {name: i for i, name in enumerate(out_names)}
     futures = {}
-    for name in sig_names:
+    for name in out_names:
         is_required = name in config.required_signals
         is_optional = not is_required
         if is_optional and not config.include_optional_signals:
@@ -351,25 +360,23 @@ def build_case_tensor_from_manifest_row(
         tid = _tid_or_none(row.get(f"tid_{name}"))
         if tid is None:
             continue
-        futures[
-            executor.submit(_process_one_signal, name, tid, config, grid_t, cutoff_sec)
-        ] = name
+        futures[executor.submit(_process_one_signal, name, tid, config, grid_t, cutoff_sec)] = name
 
     for fut in as_completed(futures):
-        name = futures[fut]
         try:
             sig_name, sig, mask, n_obs = fut.result()
         except Exception:
-            obs_counts[name] = 0
             continue
-        i = sig_names.index(sig_name)
-        sig_mat[i] = sig
-        mask_mat[i] = mask
+        i = idx_by_name.get(sig_name)
+        if i is None:
+            continue
+        out_sig[i] = sig.astype(np.float32, copy=False)
+        out_mask[i] = mask.astype(np.float32, copy=False)
         obs_counts[sig_name] = int(n_obs)
 
-    any_mask = mask_mat.sum(axis=0) > 0
+    any_mask = out_mask.sum(axis=0) > 0
     valid_len = int(np.max(np.where(any_mask)[0]) + 1) if any_mask.any() else 0
-    x = np.concatenate([sig_mat, mask_mat], axis=0).astype(np.float32)
+    x = np.concatenate([out_sig, out_mask], axis=0).astype(np.float32)
     return x, valid_len, obs_counts
 
 
@@ -442,7 +449,59 @@ def ingest_tracks(
     usable_rows = []
     failed_rows = []
 
-    from tqdm.auto import tqdm
+    try:
+        from tqdm.auto import tqdm  # type: ignore
+    except Exception:  # pragma: no cover
+        def tqdm(x, **kwargs):
+            return x
+
+    def _read_npz_metadata(npz_path: Path) -> Tuple[Optional[Dict[str, int]], Optional[int]]:
+        """Read obs_counts + valid_len from a cached NPZ.
+
+        Returns (obs_counts, valid_len). Either can be None if missing.
+        Also performs lightweight compatibility checks against the current config
+        (signals/cutoff) to avoid silently reusing stale caches.
+        """
+        try:
+            # Quick corruption guard
+            if npz_path.stat().st_size < 100:
+                raise ValueError("npz too small")
+            data = np.load(npz_path, allow_pickle=True)
+
+            # Compatibility checks: if cache was built with different cutoff/signals,
+            # force a rebuild to keep preprocessing deterministic.
+            if "cutoff_mode" in data:
+                cm = str(np.array(data["cutoff_mode"]).reshape(-1)[0])
+                if cm != str(config.cutoff_mode):
+                    raise ValueError("cutoff_mode mismatch")
+            if "cutoff_sec" in data:
+                cs = float(np.array(data["cutoff_sec"]).reshape(-1)[0])
+                if not np.isfinite(cs) or abs(cs - float(get_cutoff_sec(config))) > 1e-3:
+                    raise ValueError("cutoff_sec mismatch")
+
+            valid_len = int(data["valid_len"]) if "valid_len" in data else None
+            obs_counts = None
+            if "obs_counts" in data:
+                oc = data["obs_counts"]
+                # Saved as object array with a dict inside
+                if isinstance(oc, np.ndarray) and oc.dtype == object and oc.size > 0:
+                    maybe = oc.item()
+                    if isinstance(maybe, dict):
+                        obs_counts = {str(k): int(v) for k, v in maybe.items()}
+            # Fallback: derive obs_counts from x masks if missing
+            if obs_counts is None and "x" in data and valid_len is not None:
+                x = data["x"].astype(np.float32)
+                sig_names = list(config.signals)
+                n_sig = len(sig_names)
+                if x.ndim != 2 or x.shape[0] < 2 * n_sig:
+                    raise ValueError("signals mismatch")
+                masks = x[n_sig : 2 * n_sig, : int(valid_len)]
+                obs_counts = {
+                    name: int(np.sum(masks[i] > 0.5)) for i, name in enumerate(sig_names)
+                }
+            return obs_counts, valid_len
+        except Exception:
+            return None, None
 
     with ThreadPoolExecutor(max_workers=int(config.n_threads)) as ex:
         for _, row in tqdm(
@@ -454,14 +513,58 @@ def ingest_tracks(
             caseid = int(row["caseid"])
             out_path = paths["cache_dir"] / f"case_{caseid}.npz"
             if out_path.exists() and not force:
-                usable_rows.append(
-                    {"caseid": caseid, "cache_path": str(out_path), "status": "cached"}
-                )
-                continue
+                obs_counts, valid_len = _read_npz_metadata(out_path)
+                # If cached NPZ is corrupted or missing critical fields, rebuild it.
+                if obs_counts is not None and valid_len is not None:
+                    valid_len_int = int(valid_len)
+                    denom = max(valid_len_int, 1)
+                    obs_frac = {
+                        f"obs_frac_{k}": float(obs_counts.get(k, 0)) / float(denom)
+                        for k in config.signals
+                    }
+                    usable_rows.append(
+                        {
+                            "caseid": caseid,
+                            "cache_path": str(out_path),
+                            "status": "cached",
+                            **{f"obs_{k}": v for k, v in obs_counts.items()},
+                            **obs_frac,
+                            "art_mbp_zero_frac": None,
+                            "art_mbp_200_frac": None,
+                            "valid_len": int(valid_len),
+                        }
+                    )
+                    continue
+                try:
+                    out_path.unlink(missing_ok=True)
+                except Exception:
+                    pass
             try:
                 x, valid_len, obs_counts = build_case_tensor_from_manifest_row(
                     row, config, grid_t, cutoff_sec, executor=ex
                 )
+
+                # Derive obs_frac per signal for auditing/stratification.
+                valid_len_int = int(valid_len)
+                denom = max(valid_len_int, 1)
+                obs_frac = {
+                    f"obs_frac_{k}": float(obs_counts.get(k, 0)) / float(denom)
+                    for k in config.signals
+                }
+
+                # Lightweight artifact indicators for ART_MBP only (no hard thresholding).
+                art_mbp_zero_frac = None
+                art_mbp_200_frac = None
+                if "ART_MBP" in config.signals:
+                    sig_names = list(config.signals)
+                    n_sig = len(sig_names)
+                    i = sig_names.index("ART_MBP")
+                    sig = x[i, :valid_len_int]
+                    mask = x[n_sig + i, :valid_len_int]
+                    vals = sig[mask > 0.5]
+                    if vals.size:
+                        art_mbp_zero_frac = float(np.mean(vals == 0.0))
+                        art_mbp_200_frac = float(np.mean(vals == 200.0))
                 ok, reason = quality_gates(obs_counts, valid_len, config)
                 if not ok:
                     failed_rows.append(
@@ -469,6 +572,9 @@ def ingest_tracks(
                             "caseid": caseid,
                             "reason": reason,
                             **{f"obs_{k}": v for k, v in obs_counts.items()},
+                            **obs_frac,
+                            "art_mbp_zero_frac": art_mbp_zero_frac,
+                            "art_mbp_200_frac": art_mbp_200_frac,
                             "valid_len": valid_len,
                         }
                     )
@@ -488,6 +594,9 @@ def ingest_tracks(
                         "cache_path": str(out_path),
                         "status": "new",
                         **{f"obs_{k}": v for k, v in obs_counts.items()},
+                        **obs_frac,
+                        "art_mbp_zero_frac": art_mbp_zero_frac,
+                        "art_mbp_200_frac": art_mbp_200_frac,
                         "valid_len": valid_len,
                     }
                 )
@@ -551,9 +660,8 @@ def create_folds(
     df_labels_usable = df_labels[df_labels["caseid"].isin(usable_caseids)].copy()
 
     df_master = df_labels_usable.merge(df_manifest, on="caseid", how="inner")
-    df_master = df_master.merge(
-        df_usable[["caseid", "cache_path"]], on="caseid", how="inner"
-    )
+    usable_cols = [c for c in df_usable.columns if c not in {"status"}]
+    df_master = df_master.merge(df_usable[usable_cols], on="caseid", how="inner")
     df_master = df_master.sort_values("caseid").reset_index(drop=True)
 
     df_master.to_csv(master_path, index=False)
@@ -562,11 +670,73 @@ def create_folds(
     caseids = df_master["caseid"].astype(int).to_numpy()
     y = df_master["aki"].astype(int).to_numpy()
 
+    # Prefer stratification that accounts for ascertainment shift proxies (lab density)
+    # when it is available and sufficiently populated.
+    stratify_y = y
+    lab_bin = None
+    if getattr(config, "fold_stratify_use_n_postop_labs", True) and "n_postop_labs" in df_master.columns:
+        labs = pd.to_numeric(df_master["n_postop_labs"], errors="coerce")
+        # Bins follow the MD suggestion: <8, 8–11, >=12
+        lab_bin = pd.cut(labs, bins=[-np.inf, 7, 11, np.inf], labels=[0, 1, 2]).astype("float")
+
+    margin_bin = None
+    if getattr(config, "fold_stratify_use_cr_margin_bin", False) and {
+        "baseline_cr",
+        "postop_max_cr",
+    }.issubset(df_master.columns):
+        baseline_cr = pd.to_numeric(df_master["baseline_cr"], errors="coerce")
+        postop_max_cr = pd.to_numeric(df_master["postop_max_cr"], errors="coerce")
+        denom = baseline_cr.where(baseline_cr > 0)
+        rel_margin = (postop_max_cr - 1.5 * baseline_cr).abs() / denom
+        thr = float(getattr(config, "fold_cr_margin_rel_threshold", 0.10))
+        margin_bin = (rel_margin < thr).astype("float")
+
+    def _try_use_strata(strata: pd.Series, *, label: str) -> bool:
+        nonlocal stratify_y
+        min_count = int(strata.value_counts().min()) if len(strata) else 0
+        if min_count >= int(config.n_splits):
+            stratify_y = strata.to_numpy()
+            print(label)
+            return True
+        return False
+
+    # Only use if enough samples per stratum; otherwise fall back gradually.
+    used = False
+    if lab_bin is not None and lab_bin.notna().all() and margin_bin is not None and margin_bin.notna().all():
+        strata3 = (
+            df_master["aki"].astype(int) * 100
+            + lab_bin.astype(int) * 10
+            + margin_bin.astype(int)
+        ).astype(int)
+        used = _try_use_strata(
+            pd.Series(strata3),
+            label=(
+                "Using stratified folds by AKI x n_postop_labs bins (<8, 8–11, >=12) x CR-margin bin"
+            ),
+        )
+
+    if not used and lab_bin is not None and lab_bin.notna().all():
+        strata2 = (df_master["aki"].astype(int) * 10 + lab_bin.astype(int)).astype(int)
+        used = _try_use_strata(
+            pd.Series(strata2),
+            label="Using stratified folds by AKI x n_postop_labs bins (<8, 8–11, >=12)",
+        )
+
+    if not used and margin_bin is not None and margin_bin.notna().all():
+        strata2 = (df_master["aki"].astype(int) * 10 + margin_bin.astype(int)).astype(int)
+        used = _try_use_strata(
+            pd.Series(strata2),
+            label="Using stratified folds by AKI x CR-margin bin",
+        )
+
+    if not used and (lab_bin is not None or margin_bin is not None):
+        print("Fallback to AKI-only stratification")
+
     skf = StratifiedKFold(
         n_splits=config.n_splits, shuffle=True, random_state=config.random_state
     )
     folds = []
-    for fold_idx, (tr_idx, va_idx) in enumerate(skf.split(caseids, y), start=1):
+    for fold_idx, (tr_idx, va_idx) in enumerate(skf.split(caseids, stratify_y), start=1):
         folds.append(
             {
                 "fold": fold_idx,
@@ -652,7 +822,11 @@ def fit_scalers(
         n_sig = len(sig_names)
         collected: List[List[np.ndarray]] = [[] for _ in range(n_sig)]
 
-        from tqdm.auto import tqdm
+        try:
+            from tqdm.auto import tqdm  # type: ignore
+        except Exception:  # pragma: no cover
+            def tqdm(x, **kwargs):
+                return x
 
         for cid in tqdm(train_caseids, desc="Collect train vals", unit="case"):
             sig, mask, _ = load_case_x(cid)
@@ -668,7 +842,7 @@ def fit_scalers(
                 if collected[i]
                 else np.array([], dtype=np.float32)
             )
-            robust = name in ("NEPI_RATE",)
+            robust = False
             scalers[name] = fit_channel_stats(vals, robust=robust)
             if vals.size:
                 scalers[name].update(

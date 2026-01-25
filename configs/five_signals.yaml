@@ -1,17 +1,19 @@
-# Default configuration for VitalDB AKI prediction
+# New optional-signal configuration (cache ART_MBP + new optionals)
+# Same signals as default.yaml; kept for backward compatibility with existing CLI usage.
 
-# Signals configuration
 signals:
   - ART_SBP
   - ART_DBP
   - HR
   - ETCO2
 
+
 required_signals:
   - ART_MBP
   - PLETH_HR
   - PLETH_SPO2
 include_optional_signals: true
+
 
 # Resampling configuration
 fs_hz: 1.0
@@ -27,6 +29,12 @@ preop_window_sec: 3600     # only used if cutoff_mode="preop"
 # AKI label windows (seconds)
 baseline_window_sec: 2592000   # 30 days
 postop_window_sec: 604800     # 7 days
+
+# Use with: python scripts/regenerate_folds.py --experiment-name 5_signal_exp --config configs/folds_cr_margin.yaml
+
+fold_stratify_use_n_postop_labs: false
+fold_stratify_use_cr_margin_bin: true
+fold_cr_margin_rel_threshold: 0.10
 
 # Cross-validation / splits
 n_splits: 5
@@ -44,13 +52,12 @@ tables_dir: "artifacts/new_optional_exp/tables"
 scalers_dir: "artifacts/new_optional_exp/scalers"
 plots_dir: "artifacts/new_optional_exp/plots"
 
-
 # Training hyperparameters
-epochs: 20
+epochs: 50
 batch_size: 32
 lr: 0.001
 weight_decay: 0.0001
-patience: 5
+patience: 25
 monitor: pr_auc  # "pr_auc" or "roc_auc"
 device: cuda     # "cuda" or "cpu"
 
@@ -63,4 +70,3 @@ model_dropout: 0.2
 model_num_heads: 4
 model_use_multiscale: true
 model_max_len: 3600
-

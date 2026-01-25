@@ -8,7 +8,7 @@ This project implements a deep learning pipeline to predict AKI occurrence after
 
 ### Key Features
 
-- **5 Vital Signs**: ART_MBP, CVP, NEPI_RATE, PLETH_HR, PLETH_SPO2
+- **5 Vital Signs**: ART_MBP, ART_SBP, ART_DBP, HR, ETCO2
 - **4 Model Architectures**: TCN, GRU, LSTM, BiLSTM
 - **5-Fold Cross-Validation**: Stratified splits with reproducible results
 - **Missingness-Aware Processing**: Explicit mask channels for missing data
@@ -92,39 +92,39 @@ pip install -e .
 
 ```bash
 # Using default configuration
-python scripts/preprocess.py --experiment-name demo_5signals
+python scripts/preprocess.py --experiment-name new_optional_exp
 
 # Using custom configuration
 python scripts/preprocess.py --config configs/my_config.yaml --experiment-name my_experiment
 
 # Force reprocessing (ignore existing artifacts)
-python scripts/preprocess.py --experiment-name demo_5signals --force
+python scripts/preprocess.py --experiment-name new_optional_exp --force
 ```
 
 ### 2. Train Models
 
 ```bash
 # Train all models
-python scripts/train.py --experiment-name demo_5signals
+python scripts/train.py --experiment-name new_optional_exp
 
 # Train specific model
-python scripts/train.py --experiment-name demo_5signals --model tcn
+python scripts/train.py --experiment-name new_optional_exp --model tcn
 
 # Force retraining (ignore existing checkpoints)
-python scripts/train.py --experiment-name demo_5signals --force
+python scripts/train.py --experiment-name new_optional_exp --force
 ```
 
 ### 3. Evaluate Models
 
 ```bash
 # Evaluate best model (auto-selected by PR-AUC)
-python scripts/evaluate.py --experiment-name demo_5signals
+python scripts/evaluate.py --experiment-name new_optional_exp
 
 # Evaluate specific model
-python scripts/evaluate.py --experiment-name demo_5signals --model tcn
+python scripts/evaluate.py --experiment-name new_optional_exp --model tcn
 
 # Save plots to files
-python scripts/evaluate.py --experiment-name demo_5signals --save-plots
+python scripts/evaluate.py --experiment-name new_optional_exp --save-plots
 ```
 
 ## Project Structure
@@ -208,7 +208,7 @@ Configuration is managed via YAML files. See `configs/default.yaml` for all avai
 
 ### Step 5: Normalization
 - Fit scalers on training fold only (prevent leakage)
-- Use robust scaling for NEPI_RATE, z-score for others
+- Use z-score scaling per channel (fit on train folds)
 - Apply only to observed values (mask-aware)
 
 ## Model Training

@@ -9,7 +9,7 @@ import numpy as np
 
 def main():
     """Find and fix all corrupted files automatically."""
-    artifacts_dir = Path("artifacts/demo_5signals")
+    artifacts_dir = Path("artifacts/new_optional_exp")
     cache_dir = artifacts_dir / "cache_npz"
     folds_path = artifacts_dir / "folds.json"
     
@@ -83,7 +83,7 @@ def main():
         print("Warning: folds.json not found, cannot update folds")
     
     print(f"\n✓ Done! You can now run training:")
-    print(f"  python scripts/train.py --experiment-name demo_5signals")
+    print(f"  python scripts/train.py --experiment-name new_optional_exp")
 
 
 if __name__ == "__main__":

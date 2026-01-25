@@ -57,7 +57,7 @@ def remove_from_folds(folds_path: Path, caseids: list):
 
 def main():
     """Main function."""
-    artifacts_dir = Path("artifacts/demo_5signals")
+    artifacts_dir = Path("artifacts/new_optional_exp")
     cache_dir = artifacts_dir / "cache_npz"
     folds_path = artifacts_dir / "folds.json"
     
@@ -117,8 +117,8 @@ def main():
         sys.exit(1)
     
     print(f"\n✓ Done! You can now:")
-    print(f"  - Run training: python scripts/train.py --experiment-name demo_5signals")
-    print(f"  - Regenerate files: python scripts/preprocess.py --experiment-name demo_5signals --force")
+    print(f"  - Run training: python scripts/train.py --experiment-name new_optional_exp")
+    print(f"  - Regenerate files: python scripts/preprocess.py --experiment-name new_optional_exp --force")
 
 
 if __name__ == "__main__":

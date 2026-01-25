@@ -99,13 +99,16 @@ def transform_signal(name: str, x: np.ndarray) -> np.ndarray:
         return np.clip(x, 0.0, 200.0)
     if name == "PLETH_HR":
         return np.clip(x, 0.0, 250.0)
+    if name == "ART_SBP":
+        return np.clip(x, 0.0, 300.0)
+    if name == "ART_DBP":
+        return np.clip(x, 0.0, 200.0)
+    if name == "HR":
+        return np.clip(x, 0.0, 250.0)
     if name == "PLETH_SPO2":
         return np.clip(x, 0.0, 100.0)
-    if name == "CVP":
-        return np.clip(x, -5.0, 30.0)
-    if name == "NEPI_RATE":
-        x = np.maximum(x, 0.0)
-        return np.log1p(x)
+    if name == "ETCO2":
+        return np.clip(x, 0.0, 100.0)
     return x
 
 

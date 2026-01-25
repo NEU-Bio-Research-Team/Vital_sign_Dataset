@@ -27,6 +27,22 @@ from ..utils.paths import get_paths
 import torch
 
 
+MODEL_DISPLAY_NAMES = {
+    "temporal_synergy": "SynerT",
+}
+
+
+def display_model_name(model_name: str) -> str:
+    """Return a human-friendly model display name.
+
+    Note: Keep internal model keys stable (e.g., 'temporal_synergy') for
+    checkpoints/artifacts, but show 'SynerT' in plots and logs.
+    """
+
+    key = (model_name or "").lower().strip()
+    return MODEL_DISPLAY_NAMES.get(key, model_name)
+
+
 def plot_roc_curves(
     model_name: str,
     folds: List[dict],
@@ -69,7 +85,7 @@ def plot_roc_curves(
     plt.ylim([0.0, 1.0])
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
-    plt.title(f"ROC curves | model={model_name}")
+    plt.title(f"ROC curves | model={display_model_name(model_name)}")
     plt.grid(True, alpha=0.3)
     plt.legend(loc="lower right")
     plt.tight_layout()
@@ -125,7 +141,9 @@ def plot_pr_curves(
     plt.ylim([0.0, 1.05])
     plt.xlabel("Recall")
     plt.ylabel("Precision")
-    plt.title(f"PR curves | model={model_name}  (dashed=prevalence)")
+    plt.title(
+        f"PR curves | model={display_model_name(model_name)}  (dashed=prevalence)"
+    )
     plt.grid(True, alpha=0.3)
     plt.legend(loc="lower left")
     plt.tight_layout()
@@ -144,6 +162,8 @@ def plot_confusion_matrix(
     config: Config,
     threshold: float = 0.5,
     save_path: Optional[Path] = None,
+    *,
+    per_fold: bool = False,
 ) -> dict:
     """Plot confusion matrix for out-of-fold predictions.
 
@@ -153,6 +173,7 @@ def plot_confusion_matrix(
         config: Configuration object.
         threshold: Classification threshold.
         save_path: Path to save plot. If None, displays plot.
+        per_fold: If True, also save/show one confusion matrix per fold.
 
     Returns:
         Dictionary with metrics.
@@ -164,6 +185,7 @@ def plot_confusion_matrix(
     )
 
     y_true_all, y_prob_all = [], []
+    fold_data: List[tuple[int, np.ndarray, np.ndarray]] = []
     for f in folds:
         fold_idx = int(f["fold"])
         val_ids = [int(x) for x in f["val_caseids"]]
@@ -174,6 +196,7 @@ def plot_confusion_matrix(
         )
         y_true_all.extend(y_true.tolist())
         y_prob_all.extend(y_prob.tolist())
+        fold_data.append((fold_idx, np.asarray(y_true, dtype=int), np.asarray(y_prob, dtype=float)))
 
     y_true_all = np.asarray(y_true_all, dtype=int)
     y_prob_all = np.asarray(y_prob_all, dtype=float)
@@ -183,7 +206,9 @@ def plot_confusion_matrix(
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=[0, 1])
     fig, ax = plt.subplots(figsize=(5, 5))
     disp.plot(ax=ax, cmap="Blues", values_format="d", colorbar=False)
-    ax.set_title(f"Confusion matrix (OOF) | model={model_name} | thr={threshold}")
+    ax.set_title(
+        f"Confusion matrix (OOF, all folds) | model={display_model_name(model_name)} | thr={threshold}"
+    )
     plt.tight_layout()
 
     metrics = {
@@ -196,9 +221,29 @@ def plot_confusion_matrix(
     if save_path:
         save_path.parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(save_path)
-        plt.close()
+        plt.close(fig)
     else:
         plt.show()
+
+    if per_fold:
+        # Save/show one confusion matrix per fold.
+        for fold_idx, y_f, p_f in fold_data:
+            y_pred_f = (p_f >= float(threshold)).astype(int)
+            cm_f = confusion_matrix(y_f, y_pred_f, labels=[0, 1])
+            disp_f = ConfusionMatrixDisplay(confusion_matrix=cm_f, display_labels=[0, 1])
+            fig_f, ax_f = plt.subplots(figsize=(5, 5))
+            disp_f.plot(ax=ax_f, cmap="Blues", values_format="d", colorbar=False)
+            ax_f.set_title(
+                f"Confusion matrix (OOF) | model={display_model_name(model_name)} | fold={int(fold_idx)} | thr={threshold}"
+            )
+            plt.tight_layout()
+
+            if save_path:
+                fold_path = save_path.parent / f"{save_path.stem}_fold{int(fold_idx)}{save_path.suffix}"
+                plt.savefig(fold_path)
+                plt.close(fig_f)
+            else:
+                plt.show()
 
     print("OOF metrics @ threshold:", metrics)
     print(

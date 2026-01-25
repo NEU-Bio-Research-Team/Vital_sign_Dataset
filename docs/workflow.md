@@ -148,8 +148,8 @@ Process: Map case IDs to track IDs for each signal
          - Filter to cases with all required signals
          ↓
 Output: manifest_relaxed.csv
-         Columns: caseid, tid_ART_MBP, tid_CVP, tid_NEPI_RATE,
-                  tid_PLETH_HR, tid_PLETH_SPO2
+         Columns: caseid, tid_ART_MBP, tid_ART_SBP, tid_ART_DBP,
+                  tid_HR, tid_ETCO2
 ```
 
 #### Step 3: Ingest Tracks
@@ -173,11 +173,11 @@ For each case in manifest:
     │   │   - Create mask channel (1=observed, 0=missing)
     │   │
     │   ├─► Apply signal-specific transforms:
-    │   │   - ART_MBP: Clip to [20, 200]
-    │   │   - CVP: Clip to [0, 30]
-    │   │   - NEPI_RATE: log1p transform
-    │   │   - PLETH_HR: Clip to [30, 200]
-    │   │   - PLETH_SPO2: Clip to [70, 100]
+    │   │   - ART_MBP: Clip to [0, 200]
+    │   │   - ART_SBP: Clip to [0, 300]
+    │   │   - ART_DBP: Clip to [0, 200]
+    │   │   - HR: Clip to [0, 250]
+    │   │   - ETCO2: Clip to [0, 100]
     │   │
     │   └─► Apply mask: signal = signal * mask
     │
@@ -248,8 +248,7 @@ For each fold (1-5):
     │   ├─► Extract observed values only (mask-aware)
     │   │
     │   ├─► Fit scaler:
-    │   │   - NEPI_RATE: RobustScaler (median, IQR)
-    │   │   - Others: StandardScaler (mean, std)
+    │   │   - StandardScaler (mean, std) for all channels
     │   │
     │   └─► Save scaler parameters
     │
@@ -699,7 +698,7 @@ vitaldb_aki/
 │           ├── paths.py          # Path management
 │           └── helpers.py        # Helper functions
 └── artifacts/
-    └── demo_5signals/
+    └── new_optional_exp/
         ├── config.json           # Saved config
         ├── labels.csv            # AKI labels
         ├── manifest_relaxed.csv  # Track mappings

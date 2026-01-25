@@ -35,7 +35,7 @@ def main():
         "--model",
         type=str,
         default=None,
-        help="Model to train (lstm, bilstm, gru, tcn). If not specified, trains all models.",
+        help="Model to train (mlp, lstm, bilstm, gru, tcn). If not specified, trains all models.",
     )
     parser.add_argument(
         "--force",
@@ -61,7 +61,7 @@ def main():
         folds = json.load(f)
 
     # Determine which models to train
-    models_to_train = ["tcn", "gru", "lstm", "bilstm"]
+    models_to_train = ["mlp", "tcn", "gru", "lstm", "bilstm"]
     if args.model:
         model_name = args.model.lower().strip()
         if model_name not in models_to_train:

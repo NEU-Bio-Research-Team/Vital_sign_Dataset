@@ -12,7 +12,7 @@ CORRUPTED_CASEID = 16
 
 def main():
     """Remove corrupted case from all relevant files."""
-    artifacts_dir = Path("artifacts/demo_5signals")
+    artifacts_dir = Path("artifacts/new_optional_exp")
     
     # Remove from df_usable
     usable_path = artifacts_dir / "df_usable.csv"
