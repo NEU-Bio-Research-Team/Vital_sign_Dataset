@@ -9,7 +9,7 @@ This project implements a deep learning pipeline to predict AKI occurrence after
 ### Key Features
 
 - **7 Vital Signs**: PLETH_SPO2, PLETH_HR, ART_MBP, ART_SBP, ART_DBP, HR, ETCO2
-- **4 Model Architectures**: TCN, GRU, LSTM, BiLSTM, MLP, WaveNet, Dilated Convolutional Network, Dilated Recurrent Network, SynerT
+- **9 Model Architectures**: TCN, GRU, LSTM, BiLSTM, MLP, WaveNet, Dilated Convolutional Network, Dilated Recurrent Network, SynerT
 - **5-Fold Cross-Validation**: Stratified splits with reproducible results
 - **Missingness-Aware Processing**: Explicit mask channels for missing data
 - **Anti-Leakage Design**: Feature window cutoff to prevent label leakage
