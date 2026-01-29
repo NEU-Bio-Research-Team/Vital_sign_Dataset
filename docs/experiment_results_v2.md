@@ -52,11 +52,11 @@ Key differences vs the older `demo_5signals` write-up:
   - `fold_stratify_use_n_postop_labs = false` (disabled)
 
 ### Training hyperparameters
-- **Epochs:** 20
+- **Epochs:** 40
 - **Batch size:** 32
 - **LR:** 0.001
 - **Weight decay:** 0.0001
-- **Early stopping patience:** 5
+- **Early stopping patience:** 15
 - **Monitor metric:** PR-AUC
 - **Device:** CUDA (if available)
 
