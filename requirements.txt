@@ -10,4 +10,5 @@ tqdm>=4.62.0
 pyyaml>=5.4.0
 requests>=2.26.0
 urllib3>=1.26.0
+scipy>=1.7.0
 

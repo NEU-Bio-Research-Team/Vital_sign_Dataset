@@ -537,6 +537,9 @@ def train_all_folds(
         )
 
     df = pd.DataFrame(rows).sort_values(["model", "fold"]).reset_index(drop=True)
+    if seed is not None:
+        # Keep seed explicit so downstream statistical tests can pair on (seed, fold).
+        df["seed"] = int(seed)
     paths = get_paths(config)
     out_csv = paths["results_dir"] / f"{model_name}_5fold_metrics{suffix}.csv"
     df.to_csv(out_csv, index=False)

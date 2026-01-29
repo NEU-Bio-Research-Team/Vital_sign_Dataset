@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Callable
+from typing import Callable, List, Optional
 
 import torch
 import torch.nn as nn
@@ -657,7 +657,7 @@ class DilatedRNNClassifier(nn.Module):
         input_dim: int,
         hidden_dim: int = 64,
         num_layers: int = 4,
-        dilations: list[int] | None = None,
+        dilations: Optional[List[int]] = None,
         cell_type: str = "lstm",
         dropout: float = 0.2,
         use_attention: bool = True,
