@@ -42,6 +42,8 @@ conda-meta/
 .ipynb_checkpoints/
 *.ipynb
 
+Preprocess signals/
+
 # Artifacts (keep structure, ignore generated data)
 artifacts/**/*.npz
 artifacts/**/*.csv
